@@ -1,0 +1,177 @@
+done init
+	in emb_setup
+		after get_neighbors, ndims=2
+			mypid=0 - neighbor[0]=1
+			mypid=0 - neighbor[1]=2
+	  just after initia count 1
+	  just after initia count 2
+done init
+done init
+	in emb_setup
+		after get_neighbors, ndims=2
+			mypid=3 - neighbor[0]=2
+			mypid=3 - neighbor[1]=1
+	  just after initia count 1
+	  just after initia count 2
+done init
+	in emb_setup
+		after get_neighbors, ndims=2
+			mypid=2 - neighbor[0]=3
+			mypid=2 - neighbor[1]=0
+	  just after initia count 1
+	  just after initia count 2
+	in emb_setup
+		after get_neighbors, ndims=2
+			mypid=1 - neighbor[0]=0
+			mypid=1 - neighbor[1]=3
+	  just after initia count 1
+	  just after initia count 2
+	after sendrecv
+	after sendrecv
+	after sendrecv
+	after sendrecv
+	buffers allocated, now communicate entries
+	I'm 2 and I will recv 6 from 3 and will send 0
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	buffers allocated, now communicate entries
+	buffers allocated, now communicate entries
+	I'm 3 and I will recv 0 from 2 and will send 6
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	buffers allocated, now communicate entries
+	I'm 1 and I will recv 0 from 0 and will send 9
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	I'm 0 and I will recv 9 from 1 and will send 0
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	send done, now copy data
+	now point sentptrs to data
+		pid 3 sendbuf[0] = 3
+		pid 3 sendbuf[1] = 0
+		pid 3 sendbuf[2] = 3
+		pid 3 sendbuf[3] = 31
+		pid 3 sendbuf[4] = 32
+		pid 3 sendbuf[5] = 33
+	now point sentptrs to data
+	now point sentptrs to data
+		pid 1 sendbuf[0] = 11
+		pid 1 sendbuf[1] = 12
+		pid 1 sendbuf[2] = 13
+		pid 1 sendbuf[3] = 1
+		pid 1 sendbuf[4] = 2
+		pid 1 sendbuf[5] = 3
+		pid 1 sendbuf[6] = 14
+		pid 1 sendbuf[7] = 15
+		pid 1 sendbuf[8] = 16
+	now point sentptrs to data
+	determine what's to be forwarded
+	determine what's to be forwarded
+	determine what's to be forwarded
+	mypid=2 packet: src=3 dst=0 size=3
+		 in get_comm_dim, mypid=2 dst=0 mask = 1 pos=1
+	just b4 add to list, mypid=2 src=3 dst=0 dim=0 cdim=1
+	after add to list
+	determine what's to be forwarded
+	mypid=0 packet: src=1 dst=2 size=3
+		 in get_comm_dim, mypid=0 dst=2 mask = 1 pos=1
+	just b4 add to list, mypid=0 src=1 dst=2 dim=0 cdim=1
+	after add to list
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done with dim0
+	  just after initia count 1
+	  just after initia count 2
+	done with dim0
+	  just after initia count 1
+	  just after initia count 2
+	done with dim0
+	done with dim0
+	  just after initia count 1
+	  just after initia count 2
+	  just after initia count 1
+	  just after initia count 2
+	after sendrecv
+	after sendrecv
+	after sendrecv
+	after sendrecv
+	buffers allocated, now communicate entries
+	I'm 1 and I will recv 0 from 3 and will send 3
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	buffers allocated, now communicate entries
+	I'm 3 and I will recv 3 from 1 and will send 0
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	buffers allocated, now communicate entries
+	buffers allocated, now communicate entries
+	I'm 2 and I will recv 3 from 0 and will send 0
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	I'm 0 and I will recv 0 from 2 and will send 3
+	recv rqsts issued, data copied to send
+	recv rqsts issued, data2 copied to send
+	recv rqsts issued, data3 copied to send
+	recv rqsts issued, data4 copied to send
+	send done, now copy data
+	send done, now copy data
+	now point sentptrs to data
+	now point sentptrs to data
+	now point sentptrs to data
+	now point sentptrs to data
+		pid 0 sendbuf[0] = 1
+		pid 0 sendbuf[1] = 2
+		pid 0 sendbuf[2] = 3
+		pid 1 sendbuf[0] = 17
+		pid 1 sendbuf[1] = 18
+		pid 1 sendbuf[2] = 19
+	determine what's to be forwarded
+	determine what's to be forwarded
+	determine what's to be forwarded
+	determine what's to be forwarded
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done adding forward data to linked lists
+	done with dim1
+	now link actual data
+	done with dim1
+	done with dim1
+	now link actual data
+	done with dim1
+	now link actual data
+	now link actual data
+	done, now cleanup
+	done, now cleanup
+	done, now cleanup
+	done, now cleanup
+	done, cleanup1
+	done, cleanup1
+done setup
+	done, cleanup1
+done setup
+	done, cleanup1
+done setup
+done setup
