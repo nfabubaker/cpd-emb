@@ -1,0 +1,263 @@
+comm.c: In function ‘init_comm’:
+comm.c:25:3: warning: implicit declaration of function ‘setintzero’ [-Wimplicit-function-declaration]
+   setintzero(co->nrecvwho, nmodes);
+   ^~~~~~~~~~
+cp-als-bin-barrier-fg-mpiio.c: In function ‘parse_mesh_str’:
+cp-als-bin-barrier-fg-mpiio.c:56:19: warning: passing argument 1 of ‘free_tensor’ from incompatible pointer type [-Wincompatible-pointer-types]
+       free_tensor(t);
+                   ^
+In file included from comm.h:7,
+                 from genst.h:8,
+                 from cp-als-bin-barrier-fg-mpiio.c:11:
+tensor.h:15:26: note: expected ‘tensor *’ {aka ‘struct tensor *’} but argument is of type ‘struct genst *’
+ void free_tensor(tensor *t);
+                  ~~~~~~~~^
+cpd.c: In function ‘compute_inverse’:
+cpd.c:47:3: warning: implicit declaration of function ‘setreal_tzero’ [-Wimplicit-function-declaration]
+   setreal_tzero(lmatrix, size);
+   ^~~~~~~~~~~~~
+cpd.c:56:33: warning: implicit declaration of function ‘sqrt’ [-Wimplicit-function-declaration]
+           lmatrix[i*cprank+j] = sqrt(inverse[i*cprank+i]-inner);
+                                 ^~~~
+cpd.c:56:33: warning: incompatible implicit declaration of built-in function ‘sqrt’
+cpd.c:56:33: note: include ‘<math.h>’ or provide a declaration of ‘sqrt’
+cpd.c:6:1:
++#include <math.h>
+ 
+cpd.c:56:33:
+           lmatrix[i*cprank+j] = sqrt(inverse[i*cprank+i]-inner);
+                                 ^~~~
+cpd.c: In function ‘normalize2’:
+cpd.c:270:17: warning: incompatible implicit declaration of built-in function ‘sqrt’
+     lambda[i] = sqrt(lambda[i]);
+                 ^~~~
+cpd.c:270:17: note: include ‘<math.h>’ or provide a declaration of ‘sqrt’
+cpd.c: In function ‘compute_fit’:
+cpd.c:414:16: warning: implicit declaration of function ‘fabs’ [-Wimplicit-function-declaration]
+   decompnorm = fabs(decompnorm);
+                ^~~~
+cpd.c:414:16: warning: incompatible implicit declaration of built-in function ‘fabs’
+cpd.c:414:16: note: include ‘<math.h>’ or provide a declaration of ‘fabs’
+cpd.c:433:14: warning: incompatible implicit declaration of built-in function ‘sqrt’
+   residual = sqrt(inputnorm + decompnorm - 2*inner);
+              ^~~~
+cpd.c:433:14: note: include ‘<math.h>’ or provide a declaration of ‘sqrt’
+cpd.c: In function ‘cp_als_stats_fg’:
+cpd.c:464:24: warning: implicit declaration of function ‘mttkrp_stats’ [-Wimplicit-function-declaration]
+           cnt_st[i] += mttkrp_stats(gs,t, ft, csftns, i, matm);
+                        ^~~~~~~~~~~
+cpd.c: In function ‘cp_als_fg’:
+cpd.c:553:11: warning: implicit declaration of function ‘mttkrp’; did you mean ‘mktemp’? [-Wimplicit-function-declaration]
+           mttkrp(gs, t, ft, csftns, i, matm);
+           ^~~~~~
+           mktemp
+csf.c: In function ‘p_csf_alloc_untiled’:
+csf.c:77:5: warning: implicit declaration of function ‘radixsort’ [-Wimplicit-function-declaration]
+     radixsort(tns->inds, tns->vals, tns->nnz, tns->nmodes, csftns->dim_perm, gs->ldims);
+     ^~~~~~~~~
+csf.c:78:5: warning: implicit declaration of function ‘checksort’ [-Wimplicit-function-declaration]
+     checksort(tns->inds, tns->nnz, nmodes, csftns->dim_perm);
+     ^~~~~~~~~
+csf.c:91:5: warning: implicit declaration of function ‘memcpy’ [-Wimplicit-function-declaration]
+     memcpy(pt->vals, tns->vals, tns->nnz * sizeof(real_t));
+     ^~~~~~
+csf.c:91:5: warning: incompatible implicit declaration of built-in function ‘memcpy’
+csf.c:91:5: note: include ‘<string.h>’ or provide a declaration of ‘memcpy’
+csf.c:5:1:
++#include <string.h>
+ 
+csf.c:91:5:
+     memcpy(pt->vals, tns->vals, tns->nnz * sizeof(real_t));
+     ^~~~~~
+fibertensor.c: In function ‘get_longest_fibers’:
+fibertensor.c:30:3: warning: implicit declaration of function ‘memcpy’ [-Wimplicit-function-declaration]
+   memcpy(ft->lvals, vals, nnz*sizeof(real_t));
+   ^~~~~~
+fibertensor.c:30:3: warning: incompatible implicit declaration of built-in function ‘memcpy’
+fibertensor.c:30:3: note: include ‘<string.h>’ or provide a declaration of ‘memcpy’
+fibertensor.c:4:1:
++#include <string.h>
+ 
+fibertensor.c:30:3:
+   memcpy(ft->lvals, vals, nnz*sizeof(real_t));
+   ^~~~~~
+fibertensor.c: In function ‘get_secondlongest_fibers’:
+fibertensor.c:49:3: warning: incompatible implicit declaration of built-in function ‘memcpy’
+   memcpy(ft->slvals, vals, nnz*sizeof(real_t));
+   ^~~~~~
+fibertensor.c:49:3: note: include ‘<string.h>’ or provide a declaration of ‘memcpy’
+fibertensor.c: In function ‘get_fibertensor’:
+fibertensor.c:289:7: warning: implicit declaration of function ‘radixsort’ [-Wimplicit-function-declaration]
+       radixsort(t->inds, t->vals, nnz, nmodes, order, gs->ldims);
+       ^~~~~~~~~
+fibertensor.c:290:7: warning: implicit declaration of function ‘checksort’ [-Wimplicit-function-declaration]
+       checksort(t->inds, nnz, nmodes, order);
+       ^~~~~~~~~
+genst.c: In function ‘compute_mesh_dim’:
+genst.c:70:14: warning: implicit declaration of function ‘log2’ [-Wimplicit-function-declaration]
+   nfac= (int)log2((real_t)number)+1;
+              ^~~~
+genst.c:70:14: warning: incompatible implicit declaration of built-in function ‘log2’
+genst.c:70:14: note: include ‘<math.h>’ or provide a declaration of ‘log2’
+genst.c:3:1:
++#include <math.h>
+ void init_genst(struct genst *gs)
+genst.c:70:14:
+   nfac= (int)log2((real_t)number)+1;
+              ^~~~
+genst.c:97:7: warning: implicit declaration of function ‘setintzero’ [-Wimplicit-function-declaration]
+       setintzero(dist, nmodes);
+       ^~~~~~~~~~
+io.c: In function ‘read_ckbd_tensor_nonzeros’:
+io.c:117:7: warning: implicit declaration of function ‘memcpy’ [-Wimplicit-function-declaration]
+       memcpy(&inds[i*nmodes], &tmp[i*(nmodes+1)], sizeof(int)*nmodes);
+       ^~~~~~
+io.c:117:7: warning: incompatible implicit declaration of built-in function ‘memcpy’
+io.c:117:7: note: include ‘<string.h>’ or provide a declaration of ‘memcpy’
+io.c:4:1:
++#include <string.h>
+ 
+io.c:117:7:
+       memcpy(&inds[i*nmodes], &tmp[i*(nmodes+1)], sizeof(int)*nmodes);
+       ^~~~~~
+io.c: In function ‘read_ckbd_tensor_nonzeros_endian’:
+io.c:137:15: warning: implicit declaration of function ‘convert’ [-Wimplicit-function-declaration]
+     buff[j] = convert(buff[j]);
+               ^~~~~~~
+mttkrp.c: In function ‘mttkrp_fiber_3’:
+mttkrp.c:91:11: warning: implicit declaration of function ‘memset’ [-Wimplicit-function-declaration]
+           memset(acc, 0, sizeof(real_t)*cprank);
+           ^~~~~~
+mttkrp.c:91:11: warning: incompatible implicit declaration of built-in function ‘memset’
+mttkrp.c:91:11: note: include ‘<string.h>’ or provide a declaration of ‘memset’
+mttkrp.c:3:1:
++#include <string.h>
+ void mttkrp_nnz(struct genst *gs, struct tensor *t, int mode, real_t *matm)
+mttkrp.c:91:11:
+           memset(acc, 0, sizeof(real_t)*cprank);
+           ^~~~~~
+mttkrp.c: In function ‘mttkrp_fiber_4’:
+mttkrp.c:159:11: warning: incompatible implicit declaration of built-in function ‘memset’
+           memset(acc, 0, sizeof(real_t)*cprank);
+           ^~~~~~
+mttkrp.c:159:11: note: include ‘<string.h>’ or provide a declaration of ‘memset’
+mttkrp.c: In function ‘mttkrp_nnz_stats’:
+mttkrp.c:209:19: warning: implicit declaration of function ‘get_wc_time’ [-Wimplicit-function-declaration]
+   time = (real_t) get_wc_time();
+                   ^~~~~~~~~~~
+mttkrp.c: In function ‘mttkrp_fiber_3_stats’:
+mttkrp.c:290:11: warning: incompatible implicit declaration of built-in function ‘memset’
+           memset(acc, 0, sizeof(real_t)*cprank);
+           ^~~~~~
+mttkrp.c:290:11: note: include ‘<string.h>’ or provide a declaration of ‘memset’
+mttkrp.c: In function ‘mttkrp_fiber_4_stats’:
+mttkrp.c:375:11: warning: incompatible implicit declaration of built-in function ‘memset’
+           memset(acc, 0, sizeof(real_t)*cprank);
+           ^~~~~~
+mttkrp.c:375:11: note: include ‘<string.h>’ or provide a declaration of ‘memset’
+mttkrp.c: In function ‘mttkrp’:
+mttkrp.c:421:9: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+         printf("Not yet\n");
+         ^~~~~~
+mttkrp.c:421:9: warning: incompatible implicit declaration of built-in function ‘printf’
+mttkrp.c:421:9: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+mttkrp.c:3:1:
++#include <stdio.h>
+ void mttkrp_nnz(struct genst *gs, struct tensor *t, int mode, real_t *matm)
+mttkrp.c:421:9:
+         printf("Not yet\n");
+         ^~~~~~
+mttkrp.c: In function ‘mttkrp_stats’:
+mttkrp.c:446:11: warning: incompatible implicit declaration of built-in function ‘printf’
+           printf("Not yet\n");
+           ^~~~~~
+mttkrp.c:446:11: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+mttkrp.c: In function ‘mttkrp_csf_root’:
+mttkrp.c:492:9: warning: implicit declaration of function ‘mttkrp_csf_root_4m’; did you mean ‘mttkrp_csf_root_3m’? [-Wimplicit-function-declaration]
+         mttkrp_csf_root_4m(gs, ft, matm);
+         ^~~~~~~~~~~~~~~~~~
+         mttkrp_csf_root_3m
+mttkrp.c: In function ‘mttkrp_csf_int’:
+mttkrp.c:512:9: warning: implicit declaration of function ‘mttkrp_csf_int_4m’; did you mean ‘mttkrp_csf_int_3m’? [-Wimplicit-function-declaration]
+         mttkrp_csf_int_4m(gs, ft, matm, mode);
+         ^~~~~~~~~~~~~~~~~
+         mttkrp_csf_int_3m
+mttkrp.c: In function ‘mttkrp_csf_leaf’:
+mttkrp.c:532:9: warning: implicit declaration of function ‘mttkrp_csf_leaf_4m’; did you mean ‘mttkrp_csf_leaf_3m’? [-Wimplicit-function-declaration]
+         mttkrp_csf_leaf_4m(gs, ft, matm);
+         ^~~~~~~~~~~~~~~~~~
+         mttkrp_csf_leaf_3m
+mttkrp.c: At top level:
+mttkrp.c:682:6: warning: conflicting types for ‘mttkrp_csf_root_4m’
+ void mttkrp_csf_root_4m(struct genst *gs, struct csftensor *ft, real_t *matm)
+      ^~~~~~~~~~~~~~~~~~
+mttkrp.c:492:9: note: previous implicit declaration of ‘mttkrp_csf_root_4m’ was here
+         mttkrp_csf_root_4m(gs, ft, matm);
+         ^~~~~~~~~~~~~~~~~~
+mttkrp.c:742:6: warning: conflicting types for ‘mttkrp_csf_int_4m’
+ void mttkrp_csf_int_4m(struct genst *gs, struct csftensor *ft, real_t *matm, int mode)
+      ^~~~~~~~~~~~~~~~~
+mttkrp.c:512:9: note: previous implicit declaration of ‘mttkrp_csf_int_4m’ was here
+         mttkrp_csf_int_4m(gs, ft, matm, mode);
+         ^~~~~~~~~~~~~~~~~
+mttkrp.c:817:6: warning: conflicting types for ‘mttkrp_csf_leaf_4m’
+ void mttkrp_csf_leaf_4m(struct genst *gs, struct csftensor *ft, real_t *matm)
+      ^~~~~~~~~~~~~~~~~~
+mttkrp.c:532:9: note: previous implicit declaration of ‘mttkrp_csf_leaf_4m’ was here
+         mttkrp_csf_leaf_4m(gs, ft, matm);
+         ^~~~~~~~~~~~~~~~~~
+stats.c: In function ‘init_stats’:
+stats.c:15:3: warning: implicit declaration of function ‘setintzero’ [-Wimplicit-function-declaration]
+   setintzero(st->recvvol, nmodes);
+   ^~~~~~~~~~
+util.c: In function ‘get_wc_time’:
+util.c:36:3: warning: implicit declaration of function ‘gettimeofday’ [-Wimplicit-function-declaration]
+   gettimeofday(&twclk, NULL) ;
+   ^~~~~~~~~~~~
+util.c: In function ‘substring’:
+util.c:57:17: warning: implicit declaration of function ‘strstr’ [-Wimplicit-function-declaration]
+   while( (ptr = strstr(ptr,"/")))
+                 ^~~~~~
+util.c:57:17: warning: incompatible implicit declaration of built-in function ‘strstr’
+util.c:57:17: note: include ‘<string.h>’ or provide a declaration of ‘strstr’
+util.c:4:1:
++#include <string.h>
+ 
+util.c:57:17:
+   while( (ptr = strstr(ptr,"/")))
+                 ^~~~~~
+util.c:64:12: warning: implicit declaration of function ‘strlen’ [-Wimplicit-function-declaration]
+   int sl = strlen(prevptr)-6;
+            ^~~~~~
+util.c:64:12: warning: incompatible implicit declaration of built-in function ‘strlen’
+util.c:64:12: note: include ‘<string.h>’ or provide a declaration of ‘strlen’
+util.c:65:3: warning: implicit declaration of function ‘strncpy’ [-Wimplicit-function-declaration]
+   strncpy(out, prevptr, sl);
+   ^~~~~~~
+util.c:65:3: warning: incompatible implicit declaration of built-in function ‘strncpy’
+util.c:65:3: note: include ‘<string.h>’ or provide a declaration of ‘strncpy’
+util.c: In function ‘radixsort’:
+util.c:101:7: warning: implicit declaration of function ‘memcpy’ [-Wimplicit-function-declaration]
+       memcpy(tmpinds, inds, nnz*nmodes*sizeof(int));
+       ^~~~~~
+util.c:101:7: warning: incompatible implicit declaration of built-in function ‘memcpy’
+util.c:101:7: note: include ‘<string.h>’ or provide a declaration of ‘memcpy’
+util.c: In function ‘checksort’:
+util.c:136:13: warning: implicit declaration of function ‘printf’ [-Wimplicit-function-declaration]
+             printf("adasda\n");
+             ^~~~~~
+util.c:136:13: warning: incompatible implicit declaration of built-in function ‘printf’
+util.c:136:13: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
+util.c:4:1:
++#include <stdio.h>
+ 
+util.c:136:13:
+             printf("adasda\n");
+             ^~~~~~
+util.c: In function ‘substring’:
+util.c:65:3: warning: ‘strncpy’ specified bound depends on the length of the source argument [-Wstringop-overflow=]
+   strncpy(out, prevptr, sl);
+   ^~~~~~~~~~~~~~~~~~~~~~~~~
+util.c:64:12: note: length computed here
+   int sl = strlen(prevptr)-6;
+            ^~~~~~~~~~~~~~~
