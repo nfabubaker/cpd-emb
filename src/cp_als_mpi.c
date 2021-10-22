@@ -130,14 +130,14 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
         if(gs->comm_type == EMB){
             emb_get_stats(gs->comm->ec[i*2+1],&stfw_m[i][0], &stfw_m[i][1], &stfw_s[i][0], &stfw_m[i][2] , &stfw_m[i][3], &stfw_s[i][1]);
         }
-        MPI_Reduce(&st->sendmsg[i], &pmStats[i][0], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->recvmsg[i], &pmStats[i][1], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->sendmsg[i], &pmStats[i][2], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->sendvol[i], &pmStats[i][3], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->recvvol[i], &pmStats[i][4], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->sendvol[i], &pmStats[i][5], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->row[i], &pmStats[i][6], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&st->row[i], &pmStats[i][7], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->sendmsg[i], &pmStats[i][0], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->recvmsg[i], &pmStats[i][1], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->sendmsg[i], &pmStats[i][2], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->sendvol[i], &pmStats[i][3], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->recvvol[i], &pmStats[i][4], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->sendvol[i], &pmStats[i][5], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->row[i], &pmStats[i][6], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&st->row[i], &pmStats[i][7], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
     }
 
     foldT = expandT = mttkrpT = totT = mmT = othersT = 0.0;

@@ -85,7 +85,7 @@ idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct gens
     MPI_File fh;
     MPI_Status statsus;
 
-    long long idx_t of;
+    long idx_t of;
 
     nmodes = gs->nmodes;
     offset = gs->mype*3*sizeof(int);
@@ -95,7 +95,7 @@ idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct gens
     //printf("b4 mpi read \n");
 
     MPI_File_open(MPI_COMM_WORLD, tensorfile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_read_at(fh, offset, buf, 3, MPI_INT, &statsus);
+    MPI_File_read_at(fh, offset, buf, 3, MPI_IDX_T, &statsus);
     nnz = buf[1];
     of = buf[2]*(nmodes+1)*sizeof(int)+gs->npes*3*sizeof(int);
     t->inds = (idx_t *) malloc(nmodes*nnz*sizeof(int));
@@ -105,11 +105,11 @@ idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct gens
     tmp = (idx_t *) malloc(sizeof(int) * tmpsize);
     //tmp = (idx_t *)malloc((nmodes+1)*nnz*sizeof(int));
 
-    MPI_Allreduce(&nnz, &t->gnnz, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&nnz, &t->gnnz, 1, MPI_IDX_T, MPI_SUM, MPI_COMM_WORLD);
     inds = t->inds;
     vals = t->vals;
 
-    MPI_File_read_at(fh, of, tmp, (nmodes+1)*nnz, MPI_INT, &statsus);
+    MPI_File_read_at(fh, of, tmp, (nmodes+1)*nnz, MPI_IDX_T, &statsus);
     MPI_File_close(&fh); 
 
     for(i = 0; i < nnz; i++)
@@ -186,7 +186,7 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
             exit(1);
         }
     }
-    MPI_Bcast(&nmodes,  1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&nmodes,  1, MPI_IDX_T, 0, MPI_COMM_WORLD);
     gs->nmodes = nmodes;
     gs->gdims = (idx_t *)malloc(nmodes*sizeof(int));
 
@@ -197,7 +197,7 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
             fgets(line, 128, fpart);
             sscanf(line, "#%d\n", &dim);
         }
-        MPI_Bcast(&dim,  1, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(&dim,  1, MPI_IDX_T, 0, MPI_COMM_WORLD);
         gs->gdims[i] = dim; 
 
         gs->interpart[i] = (idx_t *)malloc(sizeof(int)*dim);
@@ -208,7 +208,7 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
                 sscanf(line, "%d\n", &gs->interpart[i][j]);
             }
         }
-        MPI_Bcast(gs->interpart[i],  dim, MPI_INT, 0, MPI_COMM_WORLD);
+        MPI_Bcast(gs->interpart[i],  dim, MPI_IDX_T, 0, MPI_COMM_WORLD);
 
     }
 
@@ -242,7 +242,7 @@ void read_hc_imap(char filename[], idx_t nmodes, idx_t npes, idx_t **imap_arr)
                 fgets(line, 128, fpart);
                 sscanf(line, "%d\n", &imap_arr[i][j]);
             }
-        MPI_Bcast(imap_arr[i], npes, MPI_INT, 0, MPI_COMM_WORLD); 
+        MPI_Bcast(imap_arr[i], npes, MPI_IDX_T, 0, MPI_COMM_WORLD); 
     }
     if(mype == 0)
         fclose(fpart);

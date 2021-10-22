@@ -27,7 +27,7 @@ idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestm
       ptr += nmodes;
     }
   ft->lvals = (real_t *)malloc(nnz*sizeof(real_t));
-  memcpy(ft->lvals, vals, nnz*sizeof(real_t));
+  memcpy(ft->lvals, vals, (size_t)(nnz*sizeof(real_t)));
 
 }
 

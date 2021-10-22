@@ -9,8 +9,9 @@
 #define BASIC_H
 
 #define real_t float
-#define idx_t int
+#define idx_t long
 #define MPI_REAL_T MPI_FLOAT
+#define MPI_IDX_T MPI_LONG
 
 
 #endif /* end of include guard BASIC_H */

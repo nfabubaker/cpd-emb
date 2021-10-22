@@ -306,11 +306,11 @@ idx_t  mttkrp_fiber_3_stats(struct genst *gs, struct fibertensor *ft, idx_t mode
   //cnt += fc;
   
   //idx_t avg, max, avgs, maxs;
-  //MPI_Reduce(&fc, &avg, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  //MPI_Reduce(&fc, &max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+  //MPI_Reduce(&fc, &avg, 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+  //MPI_Reduce(&fc, &max, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
 
-  //MPI_Reduce(&cnt, &avgs, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-  //MPI_Reduce(&cnt, &maxs, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+  //MPI_Reduce(&cnt, &avgs, 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+  //MPI_Reduce(&cnt, &maxs, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
 
 //  cnt_st[mode*4+0] = max;
 //  cnt_st[mode*4+1] = avg/t->npes;

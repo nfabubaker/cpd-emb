@@ -36,15 +36,15 @@ void emb_get_stats(ecomm *ec, idx_t *maxSendVol, idx_t *maxRecvVol, idx_t *total
         mrecv = 1;
         vboth = vsend + vrecv;
 
-        MPI_Reduce(&vsend, &vstot[i], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&vboth, &vsmax[i], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&vrecv, &vrtot[i], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&vboth, &vrmax[i], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vsend, &vstot[i], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vboth, &vsmax[i], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vrecv, &vrtot[i], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vboth, &vrmax[i], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
 
-        MPI_Reduce(&msend, &mstot[i], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&msend, &msmax[i], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&mrecv, &mrtot[i], 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&mrecv, &mrmax[i], 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&msend, &mstot[i], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&msend, &msmax[i], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&mrecv, &mrtot[i], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&mrecv, &mrmax[i], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
 
     }
 
@@ -73,10 +73,10 @@ void emb_get_stats(ecomm *ec, idx_t *maxSendVol, idx_t *maxRecvVol, idx_t *total
             mrecv += 1;
         }   
         idx_t vsend_max, vrecv_max, msend_max, mrecv_max;
-        MPI_Reduce(&vsend, &vsend_max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&vrecv, &vrecv_max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&msend, &msend_max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&mrecv, &mrecv_max, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vsend, &vsend_max, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&vrecv, &vrecv_max, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&msend, &msend_max, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&mrecv, &mrecv_max, 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
 
         *maxSendVol = vsend_max;
         *maxRecvVol = vrecv_max; 
@@ -105,8 +105,8 @@ void get_neighbors(idx_t mypid, idx_t *sendto, idx_t ndims, idx_t dir){
 
 idx_t get_comm_dim(idx_t mypid, idx_t dst, idx_t currDim, idx_t ndims, idx_t dir)
 {
-    unsigned idx_t pos=currDim+1;
-    unsigned idx_t mask = (mypid ^ dst);
+    unsigned int pos=currDim+1;
+    unsigned int mask = (mypid ^ dst);
 
 #ifdef NA_DBG_L3
     na_log(dbgfp, "\t\t in get_comm_dim, mypid=%d dst=%d mask = %d pos=%d\n", mypid, dst, mask, pos);
@@ -289,9 +289,9 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         na_log(dbgfp, "%s\n", "\t  just after initia count 2" );
 #endif
         sendSize[2] = nmsgs;
-        MPI_Send(sendSize, 3, MPI_INT, HI[currN], 1, MPI_COMM_WORLD);
-        MPI_Recv(recvSize, 3, MPI_INT, HI[currN], 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        /*         MPI_Sendrecv(&sendSize, 3, MPI_INT, currN, 1, &recvSize, 3, MPI_INT, mypid, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(sendSize, 3, MPI_IDX_T, HI[currN], 1, MPI_COMM_WORLD);
+        MPI_Recv(recvSize, 3, MPI_IDX_T, HI[currN], 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        /*         MPI_Sendrecv(&sendSize, 3, MPI_IDX_T, currN, 1, &recvSize, 3, MPI_IDX_T, mypid, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         */
 #ifdef NA_DBG
         MPI_Barrier(MPI_COMM_WORLD);
@@ -317,7 +317,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         na_log(dbgfp,"\tI'm %d and I will recv %d from %d and will send %d\n", mypid, recvSize[0]+recvSize[1]+recvSize[2]*3, currN, sendSize[0]+sendSize[1]+nmsgs*3); 
 #endif
         MPI_Request req;
-        MPI_Irecv(recvBuff, recvSize[0]+recvSize[1] + recvSize[2]*3, MPI_INT, HI[currN], 2, MPI_COMM_WORLD, &req );
+        MPI_Irecv(recvBuff, recvSize[0]+recvSize[1] + recvSize[2]*3, MPI_IDX_T, HI[currN], 2, MPI_COMM_WORLD, &req );
         idx_t *tptr = sendBuff;
         /* fitst, copy the data intended for neighbor */
         for (i = 0; i < nsendwho; ++i) {
@@ -388,7 +388,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "%s\n", "\trecv rqsts issued, data4 copied to send");
 #endif
-        MPI_Send(sendBuff, sendSize[0] + sendSize[1] + nmsgs * 3, MPI_INT, HI[currN], 2, MPI_COMM_WORLD);
+        MPI_Send(sendBuff, sendSize[0] + sendSize[1] + nmsgs * 3, MPI_IDX_T, HI[currN], 2, MPI_COMM_WORLD);
         MPI_Wait(&req, MPI_STATUS_IGNORE);
 
 #ifdef NA_DBG

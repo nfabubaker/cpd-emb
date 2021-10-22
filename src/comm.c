@@ -134,13 +134,13 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         MPI_Request req[size];
         for (j = 0; j < size; j++)
             if (j != mype)
-                MPI_Irecv(&(co->xsendind[i][j + 1]), 1, MPI_INT, j, 1, MPI_COMM_WORLD,
+                MPI_Irecv(&(co->xsendind[i][j + 1]), 1, MPI_IDX_T, j, 1, MPI_COMM_WORLD,
                         j < mype ? &req[j] : &req[j - 1]);
 
         for (j = 0; j < size; j++) {
             if (j != mype) {
                 idx_t nrecv = co->xrecvind[i][j + 1] - co->xrecvind[i][j];
-                MPI_Send(&nrecv, 1, MPI_INT, j, 1, MPI_COMM_WORLD);
+                MPI_Send(&nrecv, 1, MPI_IDX_T, j, 1, MPI_COMM_WORLD);
             }
         }
 
@@ -169,14 +169,14 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         for (j = 0; j < co->nsendwho[i]; j++) {
             idx_t p = co->sendwho[i][j];
             MPI_Irecv(&(co->sendind[i][co->xsendind[i][p]]),
-                    co->xsendind[i][p + 1] - co->xsendind[i][p], MPI_INT, p, 2,
+                    co->xsendind[i][p + 1] - co->xsendind[i][p], MPI_IDX_T, p, 2,
                     MPI_COMM_WORLD, &req[j]);
         }
 
         for (j = 0; j < co->nrecvwho[i]; j++) {
             idx_t p = co->recvwho[i][j];
             MPI_Send(&(co->recvind[i][co->xrecvind[i][p]]),
-                    co->xrecvind[i][p + 1] - co->xrecvind[i][p], MPI_INT, p, 2,
+                    co->xrecvind[i][p + 1] - co->xrecvind[i][p], MPI_IDX_T, p, 2,
                     MPI_COMM_WORLD);
         }
         MPI_Waitall(co->nsendwho[i], req, sta);
