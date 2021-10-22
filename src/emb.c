@@ -105,8 +105,8 @@ void get_neighbors(idx_t mypid, idx_t *sendto, idx_t ndims, idx_t dir){
 
 idx_t get_comm_dim(idx_t mypid, idx_t dst, idx_t currDim, idx_t ndims, idx_t dir)
 {
-    unsigned idx_t pos=currDim+1;
-    unsigned idx_t mask = (mypid ^ dst);
+    unsigned int pos=currDim+1;
+    unsigned int mask = (mypid ^ dst);
 
 #ifdef NA_DBG_L3
     na_log(dbgfp, "\t\t in get_comm_dim, mypid=%d dst=%d mask = %d pos=%d\n", mypid, dst, mask, pos);

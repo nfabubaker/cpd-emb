@@ -9,7 +9,8 @@
 #define BASIC_H
 
 #define real_t float
-#define idx_t int
+//#define idx_t unsinged int
+typedef unsigned int idx_t;
 #define MPI_REAL_T MPI_FLOAT
 
 

@@ -14,11 +14,11 @@ struct genst;
 
 typedef struct genst
 {
-  idx_t mype;
-  idx_t npes;
+  int mype;
+  int npes;
 	
   idx_t gnnz;      // number of nonzeros in the overall tensor
-  idx_t nmodes;    // number of modes of the tensor 
+  int nmodes;    // number of modes of the tensor 
   idx_t *gdims;    // array of size nmodes, gdims[i] denotes the size in mode i+1 
   idx_t *ldims;    // local dimensions
   idx_t **indmap;  // relabeling of indices local to the processor
@@ -44,14 +44,14 @@ typedef struct genst
 
   //cartesian nd processors 
   MPI_Comm *layercomm;
-  idx_t *layermype;
-  idx_t *layersize;
+  int *layermype;
+  int *layersize;
 	
   struct comm *comm;
 
 
   // factor matrices
-  idx_t cprank;
+  int cprank;
   real_t **mat;
   real_t *matm; /* this to be used as A^, B^ .. etc */
 
@@ -59,16 +59,16 @@ typedef struct genst
   real_t *uTu;
 
   // fiber storage?
-  idx_t fiber;
+  int fiber;
 
   // all-to-all communication?
-  idx_t alltoall;
+  int alltoall;
 
   // checkerboard
-  idx_t comm_type;
+  int comm_type;
 
   char hc_imap_FN[1024];
-  idx_t use_hc_imap;
+  int use_hc_imap;
 } genst;
 
 void init_genst(struct genst *gs);

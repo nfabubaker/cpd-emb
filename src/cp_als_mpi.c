@@ -98,7 +98,7 @@ idx_t init_param(int argc, char *argv[], char tensorfile[], char partfile[],
 
 void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *mttkrptime, double *comm1time, double *comm2time, double *mmtime, double *otherstime, genst *gs){
 
-    idx_t nStats = 8, nstfw_s = 2, nstfw_m=4;
+    int nStats = 8, nstfw_s = 2, nstfw_m=4;
     idx_t maxmf, maxme, maxvf, maxve, totm, totv, maxr, totr, i, j;
     double setupT, foldT, expandT, mttkrpT, totT, othersT, mmT, perMT_IN[5], perMT_out[5];
     idx_t **pmStats, **stfw_m, **stfw_s;
@@ -200,8 +200,9 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
 
 }
 
-idx_t main(idx_t argc, char *argv[]) {
-    idx_t mype, npes, niters, i, endian;
+int main(int argc, char *argv[]) {
+    idx_t i;
+    int mype, npes, niters, endian;
     double readtime, setuptime, cptime, cptimewb, totaltime, ltime[3], gtime[3];
 
     char tensorfile[1024], partfile[1024], meshstr[1024];
@@ -288,7 +289,7 @@ idx_t main(idx_t argc, char *argv[]) {
     mmtime = (double *)calloc(gs->nmodes, sizeof(double));
 
 
-    idx_t *cnt_st = (idx_t *)calloc(gs->nmodes, sizeof(int));
+    idx_t *cnt_st = (idx_t *)calloc(gs->nmodes, sizeof(*cnt_st));
     double cptime2;
     if(gs->comm_type == EMB){
         cp_als_fg_emb(gs, t, ft, csftns, niters, &cptime);

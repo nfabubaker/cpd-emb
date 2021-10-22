@@ -1,6 +1,6 @@
 #ifndef TP_STAT_H
 #define TP_STAT_H
-
+#include "basic.h"
 
 typedef struct stats
 {
