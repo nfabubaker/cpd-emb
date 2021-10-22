@@ -15,10 +15,10 @@ ODIR=obj
 BDIR=bin
 
 CC=mpicc
-CFLAGS=-O3 -m64 -I./include -I$(MKLROOT)/include -L$(LDIR)
+CFLAGS=-O3 -m64 -I$(MKLROOT)/include 
 #CFLAGS=-ggdb -DNA_DBG -m64 -I./include -I$(MKLROOT)/include -L$(LDIR)
 
-LIBS=-Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lstfw -lm -ldl
+LIBS=-Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm -ldl
 
 SOURCES = genst.c tensor.c mttkrp.c stat.c fibertensor.c emb.c comm.c cpd.c csf.c io.c util.c cp_als_mpi.c  
 OBJ = $(patsubst %.c, $(ODIR)/%.o, $(SOURCES))

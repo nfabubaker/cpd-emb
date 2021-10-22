@@ -115,7 +115,8 @@ void get_chunk_info(struct genst *gs)
 
 void init_matrices(struct genst *gs)
 {
-  idx_t i, j, k, l, nmodes, cprank, size, base;
+  idx_t i, j, k, l, size, base;
+  int nmodes, cprank;
   real_t *mat, v, *tmp, w;
 
   //	srand (time(NULL));

@@ -10,6 +10,7 @@
 
 #define real_t float
 #define idx_t long
+//typedef unsigned int idx_t;
 #define MPI_REAL_T MPI_FLOAT
 #define MPI_IDX_T MPI_LONG
 
