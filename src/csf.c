@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void init_csf(struct csftensor *ft)
 {
@@ -14,21 +15,21 @@ void init_csf(struct csftensor *ft)
 void csf_get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
 {
     idx_t i,j, k, dim, cnt, least, min, midx;
-    idx_t *tmpArr = (idx_t *) malloc(sizeof(int) * nmodes);
+    idx_t *tmpArr = (idx_t *) malloc(sizeof(*tmpArr) * nmodes);
     for(i=0; i< nmodes; i++){
         tmpArr[ i ] = gdims[i];
     }
     cnt = 0;
-    least = -1; 
+    least = 0; 
     while ( cnt < nmodes ){
-        min = INT_MAX;
+        min = IDX_T_MAX;
         for(i=0; i< nmodes; i++){
             if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= -2){
                 min = gdims[i];
                 midx = i;
             }
         }
-        tmpArr[midx] = -2;
+        tmpArr[midx] = 0;
         least = min;
         order[cnt] = midx;
         cnt++; 
@@ -42,10 +43,31 @@ struct csftensor * csf_alloc(struct genst *gs, struct tensor *tns )
 
     struct csftensor *csftns = NULL;
     
+#ifdef NA_DBG
+        na_log(dbgfp, "dbg p3.0: hello from csf_alloc\n");
+#endif
     csftns = (struct csftensor *)malloc(sizeof(struct csftensor));
+#ifdef NA_DBG
+        na_log(dbgfp, "\tafter initial alloc\n");
+#endif
     init_csf(csftns);
+#ifdef NA_DBG
+        na_log(dbgfp, "\tafter init_csf\n");
+#endif
+
+/*           {
+ *               volatile idx_t tt = 0;
+ *               printf("PID %d on %d ready for attach\n", gs->mype,  getpid());
+ *               fflush(stdout);
+ *               while (0 == tt)
+ *                   sleep(5);
+ *           }
+ */
 
     p_mk_csf(gs, tns, csftns, 0);
+#ifdef NA_DBG
+        na_log(dbgfp, "\tafter p_mk_csf\n");
+#endif
 
     return csftns;
 
@@ -61,8 +83,8 @@ void p_mk_csf(struct genst *gs, struct tensor *tns, struct csftensor *csftns, id
     //assign dims from tns (local ?) -- later
    /* for( i=0; i < tns->nmodes; i++){
     }*/
-    csftns->dim_perm = (idx_t *)malloc(gs->nmodes*sizeof(int));
-    csftns->dim_iperm = (idx_t *)malloc(gs->nmodes*sizeof(int));
+    csftns->dim_perm = (idx_t *)malloc(gs->nmodes*sizeof(*csftns->dim_perm));
+    csftns->dim_iperm = (idx_t *)malloc(gs->nmodes*sizeof(*csftns->dim_iperm));
     csf_get_sparsity_order(gs->gdims, csftns->dim_perm, gs->nmodes); 
     for(i = 0; i < gs->nmodes; i++)
         csftns->dim_iperm[csftns->dim_perm[i]] = i;
@@ -79,19 +101,18 @@ void p_csf_alloc_untiled(struct genst *gs, struct tensor *tns, struct csftensor 
  
     csftns->pt = (struct csfsparsity *)malloc(sizeof(struct csfsparsity));
     struct csfsparsity *pt = csftns->pt;
-    pt->nfibs = (idx_t *) malloc(nmodes * sizeof(int));
-    pt->fptr  = (idx_t **)malloc(nmodes * sizeof(idx_t *));
-    pt->fids  = (idx_t **)malloc(nmodes * sizeof(idx_t *));
+    pt->nfibs = (idx_t *) malloc(nmodes * sizeof(*pt->nfibs));
+    pt->fptr  = (idx_t **)malloc(nmodes * sizeof(*pt->fptr));
+    pt->fids  = (idx_t **)malloc(nmodes * sizeof(*pt->fids));
     pt->fptr  [nmodes-1] = NULL;
     pt->nfibs [nmodes-1] = csftns->nnz;
-    pt->fids  [nmodes-1]  = (idx_t *)malloc(csftns->nnz*sizeof(int));
+    pt->fids  [nmodes-1]  = (idx_t *)malloc(csftns->nnz*sizeof(pt->fids[nmodes-1]));
     pt->vals            = (real_t*)malloc(csftns->nnz*sizeof(real_t));
 
     /* copy data of leaf nodes*/
     memcpy(pt->vals, tns->vals, tns->nnz * sizeof(real_t)); 
 
     //idx_t pid;
-    //MPI_Comm_rank(MPI_COMM_WORLD, &pid);
     idx_t *nptr = tns->inds +  csf_depth_to_mode(csftns, nmodes-1);
     for(i=0; i < tns->nnz; i++){
         //if(pid == 0 && i < 1000)
@@ -141,9 +162,9 @@ void p_mk_fptr(struct tensor *tns, struct csftensor *csftns, idx_t tile_id, idx_
     }
 
     pt->nfibs[mode] = nfibs;
-    pt->fptr[mode] = (idx_t *)malloc((nfibs+1)*sizeof(int));
+    pt->fptr[mode] = (idx_t *)malloc((nfibs+1)*sizeof(*pt->fptr[mode]));
     pt->fptr[mode][0] = 0;
-    pt->fids[mode] = (idx_t *)malloc(nfibs*sizeof(int));
+    pt->fids[mode] = (idx_t *)malloc(nfibs*sizeof(*pt->fids[mode]));
     //pt->fids[mode][0] = tnsinds[fprev[0]*nmodes];
 
     idx_t *fp = pt->fptr[mode];
@@ -183,7 +204,7 @@ void p_mk_outerptr(struct tensor *tns, struct csftensor *csftns, idx_t tile_id, 
     //idx_t *fprev = pt->fptr[mode-1];
 
     idx_t i,j, nfibs = 1;
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
  
     
     for(i= nnzstart+1; i < nnzend; i++){ 
@@ -191,10 +212,10 @@ void p_mk_outerptr(struct tensor *tns, struct csftensor *csftns, idx_t tile_id, 
             ++nfibs;
     }
     pt->nfibs[0] = nfibs;
-    pt->fptr[0] = (idx_t *)malloc((nfibs+1)*sizeof(int));
+    pt->fptr[0] = (idx_t *)malloc((nfibs+1)*sizeof(*pt->fptr[0]));
     pt->fptr[0][0] = 0;
     pt->fptr[0][nfibs] = nnz;
-    pt->fids[0] = (idx_t *)malloc(nfibs*sizeof(int));
+    pt->fids[0] = (idx_t *)malloc(nfibs*sizeof(*pt->fids[0]));
     pt->fids[0][0] = tnsinds[0];
     //pt->fids[0] = NULL;
 
@@ -209,7 +230,7 @@ void p_mk_outerptr(struct tensor *tns, struct csftensor *csftns, idx_t tile_id, 
         }
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Barrier(MPI_COMM_WORLD);
     
  
 }

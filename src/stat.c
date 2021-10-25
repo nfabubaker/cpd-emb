@@ -4,13 +4,13 @@
 
 void init_stats(struct stats *st, idx_t nmodes)
 {
-  st->recvvol = (idx_t *)malloc(nmodes*sizeof(int));
-  st->sendvol = (idx_t *)malloc(nmodes*sizeof(int));
+  st->recvvol = (idx_t *)malloc(nmodes*sizeof(idx_t));
+  st->sendvol = (idx_t *)malloc(nmodes*sizeof(idx_t));
 
-  st->recvmsg = (idx_t *)malloc(nmodes*sizeof(int));
-  st->sendmsg = (idx_t *)malloc(nmodes*sizeof(int));
+  st->recvmsg = (idx_t *)malloc(nmodes*sizeof(idx_t));
+  st->sendmsg = (idx_t *)malloc(nmodes*sizeof(idx_t));
 
-  st->row = (idx_t *)malloc(nmodes*sizeof(int));
+  st->row = (idx_t *)malloc(nmodes*sizeof(idx_t));
 	
   setintzero(st->recvvol, nmodes);
   setintzero(st->sendvol, nmodes);

@@ -25,9 +25,9 @@ idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestm
 
 idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t secondlongestmode, idx_t nnz, struct fibertensor *ft);
 
-idx_t poidx_t_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nnz, idx_t mode, struct fibertensor *ft, idx_t longest);
+idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nnz, idx_t mode, struct fibertensor *ft, idx_t longest);
 
-idx_t get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes);
+void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes);
 
 idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft);
 

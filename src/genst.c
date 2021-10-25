@@ -116,7 +116,7 @@ void get_chunk_info(struct genst *gs)
 void init_matrices(struct genst *gs)
 {
   idx_t i, j, k, l, size, base;
-  int nmodes, cprank;
+  idx_t nmodes, cprank;
   real_t *mat, v, *tmp, w;
 
   //	srand (time(NULL));
@@ -168,13 +168,6 @@ void init_matrices(struct genst *gs)
 
 
   gs->uTu = (real_t *)malloc(nmodes*cprank*cprank*sizeof(real_t));
-
-  /*idx_t pid;
-  MPI_Comm_rank(MPI_COMM_WORLD, &pid);
-
-  printf("[%d] \t jsut before all-reduce comm in init mats\n", pid);
-
-  MPI_Barrier(MPI_COMM_WORLD);*/
 
   MPI_Allreduce(tmp,gs->uTu, cprank*cprank*nmodes, MPI_REAL_T, MPI_SUM, MPI_COMM_WORLD);
 

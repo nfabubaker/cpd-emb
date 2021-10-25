@@ -1,6 +1,9 @@
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "io.h"
+#include <string.h>
+#include <assert.h>
 
 //assumes the first line of the tensor starts with # and denotes dimension info
 /*idx_t read_dimensions(char* tfile, struct tensor *t){
@@ -79,70 +82,100 @@ return 0;
 
 idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct genst *gs)
 {
-    idx_t i, j, offset,  nmodes, nnz, *inds, val, total, *buf, *tmp;
+    typedef int inpf_t;
+#define MPI_INPF_T MPI_INT
+    idx_t i, j, offset,  nnz, *inds, val, total ;
+    inpf_t *tmp, *buf;
+    idx_t nmodes; 
     real_t *vals;
     char line[1024], *str;
     MPI_File fh;
     MPI_Status statsus;
 
-    long idx_t of;
+    assert(sizeof(idx_t) == sizeof(real_t));
+    idx_t of;
 
     nmodes = gs->nmodes;
-    offset = gs->mype*3*sizeof(int);
-    buf = (idx_t *)malloc((nmodes+1)*sizeof(int));
+    offset = gs->mype*3*sizeof(inpf_t);
+    buf = malloc((nmodes+1)*sizeof(*buf));
 
     //MPI_Barrier(MPI_COMM_WORLD);
     //printf("b4 mpi read \n");
+#ifdef NA_DBG
+    na_log(dbgfp, "\thello from read_ckbd_tensor_nonzeros: before MPI_File_open\n");
+#endif
 
     MPI_File_open(MPI_COMM_WORLD, tensorfile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
-    MPI_File_read_at(fh, offset, buf, 3, MPI_IDX_T, &statsus);
-    nnz = buf[1];
-    of = buf[2]*(nmodes+1)*sizeof(int)+gs->npes*3*sizeof(int);
-    t->inds = (idx_t *) malloc(nmodes*nnz*sizeof(int));
-    t->vals = (real_t *) malloc(nnz*sizeof(real_t));
+    MPI_File_read_at(fh, offset, buf, 3, MPI_INPF_T, &statsus);
+#ifdef NA_DBG
+    na_log(dbgfp, "\t\tafter MPI_File_read_at\n");
+#endif
+    nnz = (idx_t) buf[1];
+    of = (idx_t) buf[2]*(nmodes+1)*sizeof(inpf_t)+gs->npes*3*sizeof(inpf_t);
+    t->inds =  malloc(nmodes*nnz*sizeof(*t->inds));
+    t->vals =  malloc(nnz*sizeof(*t->vals));
     t->nnz = nnz;
     idx_t tmpsize = (nmodes+1)*nnz;
-    tmp = (idx_t *) malloc(sizeof(int) * tmpsize);
+    tmp =  malloc(sizeof(*tmp) * tmpsize);
     //tmp = (idx_t *)malloc((nmodes+1)*nnz*sizeof(int));
 
+#ifdef NA_DBG
+    na_log(dbgfp, "\t\tafter allocations\n");
+#endif
     MPI_Allreduce(&nnz, &t->gnnz, 1, MPI_IDX_T, MPI_SUM, MPI_COMM_WORLD);
     inds = t->inds;
     vals = t->vals;
 
-    MPI_File_read_at(fh, of, tmp, (nmodes+1)*nnz, MPI_IDX_T, &statsus);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t\tafter all_reduce\n");
+#endif
+    MPI_File_read_at(fh, of, tmp, (nmodes+1)*nnz, MPI_INPF_T, &statsus);
     MPI_File_close(&fh); 
 
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t\tafter 2nd read_at\n");
+#endif
     for(i = 0; i < nnz; i++)
     {
-        memcpy(&inds[i*nmodes], &tmp[i*(nmodes+1)], sizeof(int)*nmodes); 
+        //memcpy(&inds[i*nmodes], &tmp[i*(nmodes+1)], sizeof(idx_t)*nmodes); 
+        for (j = 0; j < nmodes; ++j) {
+            inds[i*nmodes+j] = (idx_t) tmp[i*(nmodes+1) +j];
+        }
         vals[i] = (real_t) tmp[i*(nmodes+1)+nmodes];
     }
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t\tafter memcpy\n");
+#endif
     free(buf);
 
 }
 
 idx_t read_ckbd_tensor_nonzeros_endian(char tensorfile[], struct tensor *t, struct genst *gs)
 {
-    idx_t i, j, nmodes, nnz, *inds, val, *buff, total;
+    idx_t i, j, nnz, *inds, val, total;
+    idx_t nmodes, *buff;
     real_t *vals;
     char line[1024], *str;
     FILE *ftensor;
 
     nmodes = gs->nmodes;
-    buff = (idx_t *)malloc((nmodes+2)*sizeof(int));
+    buff = malloc((nmodes+2)*sizeof(*buff));
 
     ftensor = fopen(tensorfile, "rb");    
-    fread(buff, sizeof(int), nmodes+2, ftensor);
+    fread(buff, sizeof(idx_t), nmodes+2, ftensor);
     for(j = 0; j < nmodes+2; j++)
         buff[j] = convert(buff[j]);
 
     t->gnnz = buff[nmodes+1];
 
-    fread(&nnz, sizeof(int), 1, ftensor);
+    fread(&nnz, sizeof(idx_t), 1, ftensor);
     nnz = convert(nnz);
 
-    t->inds = (idx_t *)malloc(nmodes*nnz*sizeof(int));
-    t->vals = (real_t *)malloc(nnz*sizeof(real_t));
+    t->inds = (idx_t *)malloc(nmodes*nnz*sizeof(*t->inds));
+    t->vals = (real_t *)malloc(nnz*sizeof(*t->vals));
     t->nnz = nnz;
 
     inds = t->inds;
@@ -151,12 +184,12 @@ idx_t read_ckbd_tensor_nonzeros_endian(char tensorfile[], struct tensor *t, stru
     idx_t b = 0;
     for(i = 0; i < nnz; i++)
     {
-        fread(&inds[b], sizeof(int), nmodes, ftensor);
+        fread(&inds[b], sizeof(idx_t), nmodes, ftensor);
         for(j = 0; j < nmodes; j++)
             inds[b+j] = convert(inds[b+j]);
         b += nmodes;
 
-        fread(&val, sizeof(int), 1, ftensor);
+        fread(&val, sizeof(real_t), 1, ftensor);
         val = convert(val);
         vals[i] = (real_t) val;
 
@@ -169,7 +202,8 @@ idx_t read_ckbd_tensor_nonzeros_endian(char tensorfile[], struct tensor *t, stru
 
 idx_t read_fg_partition(char partfile[], struct genst *gs)
 {
-    idx_t i, j, nmodes, npes, dim;
+    idx_t i, j ;
+    int dim, nmodes, npes;
     FILE *fpart;
     char line[128];
 
@@ -178,7 +212,7 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
         fpart = fopen(partfile, "r");
         fgets(line, 128, fpart);
         sscanf(line, "##%d %d\n", &nmodes, &npes);
-        if(npes != gs->npes)
+        if((idx_t)npes != gs->npes)
         {
             if(gs->mype == 0)
                 printf("The partition file is for %d processors!!\n", npes);
@@ -186,29 +220,31 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
             exit(1);
         }
     }
-    MPI_Bcast(&nmodes,  1, MPI_IDX_T, 0, MPI_COMM_WORLD);
-    gs->nmodes = nmodes;
-    gs->gdims = (idx_t *)malloc(nmodes*sizeof(int));
+    MPI_Bcast(&nmodes,  1, MPI_INT, 0, MPI_COMM_WORLD);
+    gs->nmodes = (idx_t) nmodes;
+    gs->gdims = (idx_t *)malloc(nmodes*sizeof(*gs->gdims));
 
-    gs->interpart = (idx_t **)malloc(sizeof(idx_t *)*nmodes);
-    for(i = 0; i < nmodes; i++)
+    gs->interpart = malloc(sizeof(*gs->interpart)*nmodes);
+    for(i = 0; i < gs->nmodes; i++)
     {
         if (gs->mype == 0) {
             fgets(line, 128, fpart);
             sscanf(line, "#%d\n", &dim);
         }
-        MPI_Bcast(&dim,  1, MPI_IDX_T, 0, MPI_COMM_WORLD);
-        gs->gdims[i] = dim; 
+        MPI_Bcast(&dim,  1, MPI_INT, 0, MPI_COMM_WORLD);
+        gs->gdims[i] = (idx_t) dim; 
 
-        gs->interpart[i] = (idx_t *)malloc(sizeof(int)*dim);
+        gs->interpart[i] = malloc(sizeof(*gs->interpart[i])*dim);
 
+        int pp;
         if (gs->mype == 0) {
             for(j = 0; j < dim; j++){
                 fgets(line, 128, fpart);
-                sscanf(line, "%d\n", &gs->interpart[i][j]);
+                sscanf(line, "%d\n", &pp);
+                gs->interpart[i][j] = (idx_t) pp;
             }
         }
-        MPI_Bcast(gs->interpart[i],  dim, MPI_IDX_T, 0, MPI_COMM_WORLD);
+        MPI_Bcast(gs->interpart[i],  dim, MPI_INT, 0, MPI_COMM_WORLD);
 
     }
 
@@ -219,7 +255,8 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
 
 void read_hc_imap(char filename[], idx_t nmodes, idx_t npes, idx_t **imap_arr)
 {
-    idx_t i, j, mype;
+    idx_t i, j;
+    int mype;
     FILE *fpart;
     char line[128];
     MPI_Comm_rank(MPI_COMM_WORLD, &mype);
@@ -240,7 +277,7 @@ void read_hc_imap(char filename[], idx_t nmodes, idx_t npes, idx_t **imap_arr)
         if(mype  == 0)
             for(j = 0; j < npes; j++){
                 fgets(line, 128, fpart);
-                sscanf(line, "%d\n", &imap_arr[i][j]);
+                sscanf(line, "%zu\n", &imap_arr[i][j]);
             }
         MPI_Bcast(imap_arr[i], npes, MPI_IDX_T, 0, MPI_COMM_WORLD); 
     }
@@ -252,13 +289,22 @@ idx_t read_fg_tensor(char tensorfile[], char partfile[], struct tensor *t, struc
 {
 
 
+#ifdef NA_DBG
+    na_log(dbgfp, "dbg read_fg_tensor:\n");
+#endif
     read_fg_partition(partfile, gs);
+#ifdef NA_DBG
+    na_log(dbgfp, "\tafter read_fg_partition\n");
+#endif
     t->nmodes = gs->nmodes; 
     if(endian)
         read_ckbd_tensor_nonzeros_endian(tensorfile, t, gs);
     else
         read_ckbd_tensor_nonzeros(tensorfile, t, gs);
 
+#ifdef NA_DBG
+    na_log(dbgfp, "\tafter read_ckbd_tensor_nonzeros\n");
+#endif
     gs->gnnz = t->gnnz;
     gs->nnz = t->nnz;
 }

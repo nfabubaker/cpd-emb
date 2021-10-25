@@ -3,7 +3,8 @@
 #include <string.h>
 void mttkrp_nnz(struct genst *gs, struct tensor *t, idx_t mode, real_t *matm)
 {
-  idx_t c, i, j, k, size, cprank, nmodes, iwrite, iread, *inds, nnz;
+  idx_t c, i, j, k, size, iwrite, iread, *inds, nnz;
+  idx_t nmodes, cprank;
   real_t *vals, v, *acc, *mat, **mats;
 
   nmodes = gs->nmodes;
@@ -46,7 +47,8 @@ void mttkrp_nnz(struct genst *gs, struct tensor *t, idx_t mode, real_t *matm)
 
 void mttkrp_fiber_3(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t *matm)
 {
-  idx_t j, nmodes, cprank, cnt, *xfibers0, *xfibers1, *fibers, i0, st0, en0, base0, i1, st1, en1, base1, i2, base2;
+  idx_t j, cnt, *xfibers0, *xfibers1, *fibers, i0, st0, en0, base0, i1, st1, en1, base1, i2, base2;
+  idx_t nmodes, cprank;
   real_t *mat1, *mat2, *vals, *acc;
 
   nmodes = gs->nmodes;
@@ -109,7 +111,8 @@ void mttkrp_fiber_3(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t
 
 void mttkrp_fiber_4(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t *matm)
 {
-  idx_t j, nmodes, cprank, cnt, *xfibers0, *xfibers1, *xfibers2, *fibers, i0, st0, en0, i1, st1, en1, i2, st2, en2, en3, i3, base0, base1, base2, base3;
+  idx_t j, cnt, *xfibers0, *xfibers1, *xfibers2, *fibers, i0, st0, en0, i1, st1, en1, i2, st2, en2, en3, i3, base0, base1, base2, base3;
+  idx_t nmodes, cprank;
   real_t *mat1, *mat2, *mat3, *vals, *acc, *acc2;
 
   nmodes = gs->nmodes;
@@ -192,7 +195,8 @@ void mttkrp_fiber_4(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t
 
 real_t mttkrp_nnz_stats(struct genst *gs, struct tensor *t, idx_t mode, real_t *matm, idx_t niters)
 {
-  idx_t it, c, i, j, k, size, cprank, nmodes, iwrite, iread, *inds, nnz;
+  idx_t it, c, i, j, k, size, iwrite, iread, *inds, nnz;
+  idx_t cprank, nmodes;
   real_t *vals, v, *acc, *mat, **mats, time = 0;
 
   nmodes = gs->nmodes;
@@ -243,7 +247,8 @@ real_t mttkrp_nnz_stats(struct genst *gs, struct tensor *t, idx_t mode, real_t *
 
 idx_t  mttkrp_fiber_3_stats(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t *matm)
 {
-  idx_t it, j, nmodes, cprank, cnt, *xfibers0, *xfibers1, *fibers, i0, st0, en0, base0, i1, st1, en1, base1, i2, base2;
+  idx_t it, j,  cnt, *xfibers0, *xfibers1, *fibers, i0, st0, en0, base0, i1, st1, en1, base1, i2, base2;
+  idx_t nmodes, cprank;
   real_t *mat1, *mat2, *vals, *acc, time;
 
   nmodes = gs->nmodes;
@@ -324,7 +329,8 @@ idx_t  mttkrp_fiber_3_stats(struct genst *gs, struct fibertensor *ft, idx_t mode
 
 idx_t mttkrp_fiber_4_stats(struct genst *gs, struct fibertensor *ft, idx_t mode, real_t *matm)
 {
-  idx_t it, j, nmodes, cprank, cnt, *xfibers0, *xfibers1, *xfibers2, *fibers, i0, st0, en0, i1, st1, en1, i2, st2, en2, en3, i3, base0, base1, base2, base3;
+  idx_t it, j,  cnt, *xfibers0, *xfibers1, *xfibers2, *fibers, i0, st0, en0, i1, st1, en1, i2, st2, en2, en3, i3, base0, base1, base2, base3;
+  idx_t nmodes, cprank;
   real_t *mat1, *mat2, *mat3, *vals, *acc, *acc2, time;
 
   nmodes = gs->nmodes;

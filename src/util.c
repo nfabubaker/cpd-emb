@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <mpi.h>
 /*void *myMalloc(size_t size)
   {
   void *p = malloc(size);
@@ -135,13 +136,17 @@ void substring_b(char *dst, char *src){
 
 void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order, idx_t *dims)
 {
+#ifdef NA_DBG
+        na_log(dbgfp, "\thello from radixsort\n");
+#endif
 
-    idx_t i, j, ptr, ptr2, *cnt, *tmpinds, size, mode, dim;
+    idx_t i, j, ptr, ptr2, *cnt, *tmpinds, size, dim;
+    idx_t mode;
     real_t *tmpvals;
 
-    size = nmodes*sizeof(int);
+    size = ((idx_t) nmodes)*sizeof(idx_t);
 
-    tmpinds = (idx_t *)malloc(nnz*nmodes*sizeof(int));
+    tmpinds = (idx_t *)malloc(nnz*( (idx_t) nmodes)*sizeof(*tmpinds));
     tmpvals = (real_t *)malloc(nnz*sizeof(real_t));
 
     for(i = 0; i < nmodes; i++)
@@ -149,9 +154,27 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
         mode = order[nmodes-1-i];
         dim = dims[mode];
 
-        cnt = (idx_t *)malloc((dim+1)*sizeof(int));
+#ifdef NA_DBG
+        na_log(dbgfp, "\t\tbefore cnt alloc,  mode %zu\n", i);
+/*         int mype;
+ *          MPI_Comm_rank(MPI_COMM_WORLD, &mype);
+ *           {
+ *               volatile idx_t tt = 0;
+ *               printf("PID %d on %d ready for attach\n", mype,  getpid());
+ *               fflush(stdout);
+ *               while (0 == tt)
+ *                   sleep(5);
+ *           }
+ */
+
+#endif
+        cnt = (idx_t *)malloc((dim+1)*sizeof(*cnt));
         setintzero(cnt, dim+1);
 
+#ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
+        na_log(dbgfp, "\t\tafter cnt alloc,  mode %zu\n", i);
+#endif
         ptr = mode;
         for(j = 0; j < nnz; j++)
         {
@@ -164,8 +187,14 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
         for(j = 2; j < dim; j++)
             cnt[j] += cnt[j-1];
 
-        memcpy(tmpinds, inds, nnz*nmodes*sizeof(int));
-        memcpy(tmpvals, vals, nnz*sizeof(real_t));
+#ifdef NA_DBG
+        na_log(dbgfp, "\t\tbefore inds and vals memcopy,  mode %zu\n", i);
+#endif
+        memcpy(tmpinds, inds, nnz*nmodes*sizeof(*tmpinds));
+        memcpy(tmpvals, vals, nnz*sizeof(*tmpvals));
+#ifdef NA_DBG
+        na_log(dbgfp, "\t\tafter inds and vals memcopy,  mode %zu\n", i);
+#endif
 
         ptr = mode;
         for(j = 0; j < nnz; j++)
@@ -175,6 +204,9 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
             vals[ptr2] = tmpvals[j];
             ptr += nmodes;
         }
+#ifdef NA_DBG
+        na_log(dbgfp, "\t\tafter 2nd memcopy,  mode %zu\n", i);
+#endif
 
         free(cnt);
 

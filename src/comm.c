@@ -14,17 +14,17 @@ void init_comm(struct genst *gs) {
     gs->comm = (struct comm *)malloc(sizeof(struct comm));
     struct comm *co = gs->comm;
 
-    co->nrecvwho = (idx_t *)malloc(sizeof(int) * nmodes);
-    co->recvwho = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
-    co->xrecvind = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
-    co->recvind = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
+    co->nrecvwho = (idx_t *)malloc(sizeof(*co->nrecvwho) * nmodes);
+    co->recvwho = (idx_t **)malloc(sizeof(*co->recvwho) * nmodes);
+    co->xrecvind = (idx_t **)malloc(sizeof(*co->xrecvind) * nmodes);
+    co->recvind = (idx_t **)malloc(sizeof(*co->recvind) * nmodes);
 
-    co->nsendwho = (idx_t *)malloc(sizeof(int) * nmodes);
-    co->sendwho = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
-    co->xsendind = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
-    co->sendind = (idx_t **)malloc(sizeof(idx_t *) * nmodes);
+    co->nsendwho = (idx_t *)malloc(sizeof(*co->nsendwho) * nmodes);
+    co->sendwho = (idx_t **)malloc(sizeof(*co->sendwho) * nmodes);
+    co->xsendind = (idx_t **)malloc(sizeof(*co->xsendind) * nmodes);
+    co->sendind = (idx_t **)malloc(sizeof(*co->sendind) * nmodes);
 
-    co->buffer = (real_t *)malloc(sizeof(real_t) * nmodes);
+    co->buffer = (real_t *)malloc(sizeof(*co->buffer) * nmodes);
 
     setintzero(co->nrecvwho, nmodes);
     setintzero(co->nsendwho, nmodes);
@@ -33,8 +33,9 @@ void init_comm(struct genst *gs) {
 
 void setup_fg_communication(struct genst *gs, struct tensor *t,
         struct stats *st) {
-    idx_t i, j, k, nmodes, gdim, *interpart, count, *mark, ind, *inds, ptr, lnnz, p,
-    *map, myrows, *cnts, maxbufsize, mype, size;
+    idx_t i, j, k, gdim, count, *mark, ind, *inds, ptr, lnnz, p,
+    *map, myrows, *cnts,maxbufsize ;
+    idx_t nmodes, mype, size, *interpart  ;
     struct comm *co;
 
     nmodes = gs->nmodes;
@@ -43,20 +44,30 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
 
     //init_comm(gs);
     co = gs->comm;
+/*           {
+ *               volatile idx_t tt = 0;
+ *               printf("PID %d on %d ready for attach\n", (int)mype,  getpid());
+ *               fflush(stdout);
+ *               while (0 == tt)
+ *                   sleep(5);
+ *           }
+ */
 
-    gs->indmap = (idx_t **)malloc(nmodes * sizeof(idx_t *));
-    gs->ldims = (idx_t *)malloc(nmodes * sizeof(int));
 
-    maxbufsize = -1;
+
+    gs->indmap = malloc(nmodes * sizeof(*gs->indmap));
+    gs->ldims = malloc(nmodes * sizeof(*gs->ldims));
+
+    maxbufsize = 0;
     for (i = 0; i < nmodes; i++) {
         gdim = gs->gdims[i];
         interpart = gs->interpart[i];
 
         // then indicate the number of rows to be received for mode i
-        mark = (idx_t *)malloc(sizeof(int) * gdim);
+        mark = (idx_t *)malloc(sizeof(*mark) * gdim);
         setintzero(mark, gdim);
 
-        co->xrecvind[i] = (idx_t *)malloc(sizeof(int) * (size + 2));
+        co->xrecvind[i] = (idx_t *)malloc(sizeof(*co->xrecvind[i]) * (size + 2));
         setintzero(co->xrecvind[i], size + 2);
 
         inds = t->inds;
@@ -74,7 +85,7 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         }
 
         // count local rows
-        cnts = (idx_t *)malloc((size + 2) * sizeof(int));
+        cnts = (idx_t *)malloc((size + 2) * sizeof(*cnts));
         setintzero(cnts, size + 2);
 
         for (j = 0; j < gdim; j++) {
@@ -95,7 +106,7 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         st->row[i] = myrows;
 
         // relabel
-        gs->indmap[i] = (idx_t *)malloc(gdim * sizeof(int));
+        gs->indmap[i] = (idx_t *)malloc(gdim * sizeof(*gs->indmap[i]));
         map = gs->indmap[i];
         for (j = 0; j < gdim; j++) {
             p = interpart[j];
@@ -113,7 +124,7 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         for (j = 2; j <= size + 1; j++)
             co->xrecvind[i][j] += co->xrecvind[i][j - 1];
 
-        co->recvind[i] = (idx_t *)malloc(sizeof(int) * co->xrecvind[i][size + 1]);
+        co->recvind[i] = (idx_t *)malloc(sizeof(*co->recvind[i]) * co->xrecvind[i][size + 1]);
 
         ptr = i;
         for (k = 0; k < lnnz; k++) {
@@ -128,7 +139,7 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         }
         free(mark);
 
-        co->xsendind[i] = (idx_t *)malloc(sizeof(int) * (size + 2));
+        co->xsendind[i] = (idx_t *)malloc(sizeof(*co->xsendind[i]) * (size + 2));
         setintzero(co->xsendind[i], size + 2);
 
         MPI_Request req[size];
@@ -150,16 +161,16 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         for (j = 1; j < size + 1; j++)
             co->xsendind[i][j] += co->xsendind[i][j - 1];
 
-        co->sendind[i] = (idx_t *)malloc(sizeof(int) * co->xsendind[i][size]);
+        co->sendind[i] = (idx_t *)malloc(sizeof(*co->sendind[i]) * co->xsendind[i][size]);
 
-        co->recvwho[i] = (idx_t *)malloc(sizeof(int) * size);
+        co->recvwho[i] = (idx_t *)malloc(sizeof(*co->recvind[i]) * size);
         setintzero(co->recvwho[i], size);
 
         for (j = 0; j < size; j++)
             if (co->xrecvind[i][j + 1] - co->xrecvind[i][j] > 0)
                 co->recvwho[i][co->nrecvwho[i]++] = j;
 
-        co->sendwho[i] = (idx_t *)malloc(sizeof(int) * size);
+        co->sendwho[i] = (idx_t *)malloc(sizeof(*co->sendwho[i]) * size);
         setintzero(co->sendwho[i], size);
 
         for (j = 0; j < size; j++)
@@ -191,10 +202,10 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
     st->nnz = t->nnz;
 }
 void setup_fg_communication_post(genst *gs,struct tensor *t, comm *co, stats *st){
-    idx_t i,j, mype, size, lnnz, ptr, myrows, maxbufsize = 0; 
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &mype);
-
+    idx_t i,j, lnnz, ptr, myrows, maxbufsize = 0; 
+    idx_t mype, size;
+    mype = gs->mype;
+    size = gs->npes;
     lnnz = t->nnz;
     for (i = 0; i < gs->nmodes; ++i) {
         myrows = st->row[i];
@@ -220,14 +231,14 @@ void setup_fg_communication_post(genst *gs,struct tensor *t, comm *co, stats *st
             maxbufsize = co->xsendind[i][size];
     }
 
-    co->buffer = (real_t *)malloc(sizeof(real_t) * maxbufsize * gs->cprank);
+    co->buffer = (real_t *)malloc(sizeof(*co->buffer) * maxbufsize * gs->cprank);
 }
 
 void init_emb_things(genst *gs){
     comm *co = gs->comm; 
     idx_t i,j, ndims;
     ndims = log2(gs->npes);
-    co->ec = malloc(sizeof(*(co->ec)) * gs->nmodes * 2);
+    co->ec = malloc(sizeof(*co->ec) * gs->nmodes * 2);
     
     /* for each mode, setup two hypercubes*/
     for (i = 0; i < gs->nmodes; ++i) {
@@ -278,27 +289,58 @@ void read_imap_and_reassign_partvec(genst  *gs)
 }
 
 void setup_comm(genst *gs, tensor *t, stats *st){
+
+#ifdef NA_DBG
+    na_log(dbgfp, "\thello from setup_comm\n");
+#endif
     idx_t maxldim, i;
     init_comm(gs);
+#ifdef NA_DBG
+    na_log(dbgfp, "\tafter init_comm\n");
+#endif
 
     if(gs->comm_type == EMB)
         read_imap_and_reassign_partvec(gs);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter real_imap\n");
+#endif
 
     setup_fg_communication(gs, t, st);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter setup_fg_communication\n");
+#endif
 
     init_matrices(gs);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter init_matrices\n");
+#endif
     
     maxldim = gs->ldims[0];
     for(i = 1; i < gs->nmodes; i++)
         if(gs->ldims[i] > maxldim)
             maxldim = gs->ldims[i];
 
-    gs->matm = (real_t *)malloc(maxldim*gs->cprank*sizeof(real_t));
+    gs->matm = (real_t *)malloc(maxldim*gs->cprank*sizeof(*gs->matm));
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter matm allocation\n");
+#endif
 
     if(gs->comm_type == EMB){
         init_emb_things(gs);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter init_emb_things\n");
+#endif
     }
     setup_fg_communication_post(gs, t , gs->comm, st);
+#ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\tafter setup_fg_communication_post\n");
+#endif
     if(gs->comm_type == EMB)
         free_comm(gs->comm, gs->nmodes);
 }
@@ -331,13 +373,13 @@ void receive_partial_products_fg(struct genst *t, idx_t mode, real_t *matm) {
     recvbuf = co->buffer;
 
         if (t->alltoall) {
-            sendcnt = (idx_t *)malloc(size * sizeof(int));
+            sendcnt = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(sendcnt, size);
-            recvcnt = (idx_t *)malloc(size * sizeof(int));
+            recvcnt = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(recvcnt, size);
-            senddisp = (idx_t *)malloc(size * sizeof(int));
+            senddisp = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(senddisp, size);
-            recvdisp = (idx_t *)malloc(size * sizeof(int));
+            recvdisp = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(recvdisp, size);
 
             for (i = 0; i < nsendwho; i++) {
@@ -426,13 +468,13 @@ void send_updated_rows_fg(struct genst *gs, idx_t mode) {
     }
 
         if (gs->alltoall) {
-            sendcnt = (idx_t *)malloc(size * sizeof(int));
+            sendcnt = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(sendcnt, size);
-            recvcnt = (idx_t *)malloc(size * sizeof(int));
+            recvcnt = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(recvcnt, size);
-            senddisp = (idx_t *)malloc(size * sizeof(int));
+            senddisp = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(senddisp, size);
-            recvdisp = (idx_t *)malloc(size * sizeof(int));
+            recvdisp = (idx_t *)malloc(size * sizeof(idx_t));
             setintzero(recvdisp, size);
 
             for (i = 0; i < nrecvwho; i++) {

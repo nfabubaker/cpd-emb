@@ -30,7 +30,7 @@ void printusage(char *exec) {
     printf("\t-r rank: (int) rank of CP decomposition. default: 16\n");
     printf("\t-i number of CP-ALS iterations (max). default: 10\n");
     printf("\t-c communication type, can be one of the following:\n"
-            "\t\t 0: Point-to-point communication (default), you can specify -a option with this type\n"
+            "\t\t 0: Point-to-poidx_t communication (default), you can specify -a option with this type\n"
             "\t\t 2: Embedded communication (hypercube), use -d and -b option with this type\n");
     printf(
             "\t-a all-to-all communication (0:disable or 1: enabled). default: 0\n");
@@ -41,7 +41,7 @@ void printusage(char *exec) {
 }
 
 
-idx_t init_param(int argc, char *argv[], char tensorfile[], char partfile[],
+idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
         char meshstr[], struct genst *gs, idx_t *niters, idx_t *endian) {
     // set default values
     gs->comm_type = 0; //p2p comm
@@ -98,7 +98,7 @@ idx_t init_param(int argc, char *argv[], char tensorfile[], char partfile[],
 
 void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *mttkrptime, double *comm1time, double *comm2time, double *mmtime, double *otherstime, genst *gs){
 
-    int nStats = 8, nstfw_s = 2, nstfw_m=4;
+    idx_t nStats = 8, nstfw_s = 2, nstfw_m=4;
     idx_t maxmf, maxme, maxvf, maxve, totm, totv, maxr, totr, i, j;
     double setupT, foldT, expandT, mttkrpT, totT, othersT, mmT, perMT_IN[5], perMT_out[5];
     idx_t **pmStats, **stfw_m, **stfw_s;
@@ -202,7 +202,8 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
 
 int main(int argc, char *argv[]) {
     idx_t i;
-    int mype, npes, niters, endian;
+    idx_t niters, endian;
+    int mype, npes;
     double readtime, setuptime, cptime, cptimewb, totaltime, ltime[3], gtime[3];
 
     char tensorfile[1024], partfile[1024], meshstr[1024];
@@ -216,8 +217,8 @@ int main(int argc, char *argv[]) {
 
     t = (struct tensor *)malloc(sizeof(struct tensor));
     gs = (struct genst *)malloc(sizeof(struct genst));
-    gs->mype = mype;
-    gs->npes = npes;
+    gs->mype = (idx_t) mype;
+    gs->npes = (idx_t) npes;
 #ifdef NA_DBG
     struct stat stt = {0};
 
@@ -255,6 +256,9 @@ int main(int argc, char *argv[]) {
 #endif
     // setup the environment
     setup_comm(gs, t, st);
+#ifdef NA_DBG
+    na_log(dbgfp, "dbg p2: after setup_comm\n");
+#endif
     struct fibertensor *ft = NULL;
     struct csftensor *csftns = NULL;
     if (gs->fiber == 1) {
@@ -271,6 +275,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "dbg p3: after csf init\n");
 #endif
 #ifdef NA_DBG
+    MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "dbg p3: after csf init\n");
 #endif
         free_tensor(t);

@@ -132,7 +132,7 @@ mttkrp.c:91:11: warning: incompatible implicit declaration of built-in function 
 mttkrp.c:91:11: note: include ‘<string.h>’ or provide a declaration of ‘memset’
 mttkrp.c:3:1:
 +#include <string.h>
- void mttkrp_nnz(struct genst *gs, struct tensor *t, int mode, real_t *matm)
+ void mttkrp_nnz(struct genst *gs, struct tensor *t, idx_t mode, real_t *matm)
 mttkrp.c:91:11:
            memset(acc, 0, sizeof(real_t)*cprank);
            ^~~~~~
@@ -163,7 +163,7 @@ mttkrp.c:421:9: warning: incompatible implicit declaration of built-in function 
 mttkrp.c:421:9: note: include ‘<stdio.h>’ or provide a declaration of ‘printf’
 mttkrp.c:3:1:
 +#include <stdio.h>
- void mttkrp_nnz(struct genst *gs, struct tensor *t, int mode, real_t *matm)
+ void mttkrp_nnz(struct genst *gs, struct tensor *t, idx_t mode, real_t *matm)
 mttkrp.c:421:9:
          printf("Not yet\n");
          ^~~~~~
@@ -195,7 +195,7 @@ mttkrp.c:492:9: note: previous implicit declaration of ‘mttkrp_csf_root_4m’ 
          mttkrp_csf_root_4m(gs, ft, matm);
          ^~~~~~~~~~~~~~~~~~
 mttkrp.c:742:6: warning: conflicting types for ‘mttkrp_csf_int_4m’
- void mttkrp_csf_int_4m(struct genst *gs, struct csftensor *ft, real_t *matm, int mode)
+ void mttkrp_csf_int_4m(struct genst *gs, struct csftensor *ft, real_t *matm, idx_t mode)
       ^~~~~~~~~~~~~~~~~
 mttkrp.c:512:9: note: previous implicit declaration of ‘mttkrp_csf_int_4m’ was here
          mttkrp_csf_int_4m(gs, ft, matm, mode);
@@ -227,7 +227,7 @@ util.c:57:17:
    while( (ptr = strstr(ptr,"/")))
                  ^~~~~~
 util.c:64:12: warning: implicit declaration of function ‘strlen’ [-Wimplicit-function-declaration]
-   int sl = strlen(prevptr)-6;
+   idx_t sl = strlen(prevptr)-6;
             ^~~~~~
 util.c:64:12: warning: incompatible implicit declaration of built-in function ‘strlen’
 util.c:64:12: note: include ‘<string.h>’ or provide a declaration of ‘strlen’
@@ -259,5 +259,5 @@ util.c:65:3: warning: ‘strncpy’ specified bound depends on the length of the
    strncpy(out, prevptr, sl);
    ^~~~~~~~~~~~~~~~~~~~~~~~~
 util.c:64:12: note: length computed here
-   int sl = strlen(prevptr)-6;
+   idx_t sl = strlen(prevptr)-6;
             ^~~~~~~~~~~~~~~

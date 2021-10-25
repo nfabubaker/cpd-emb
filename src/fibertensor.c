@@ -18,7 +18,7 @@ idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestm
 {
   idx_t i, *fibers, ptr;
 
-  ft->lfibers = (idx_t *)malloc(nnz*sizeof(int));
+  ft->lfibers = (idx_t *)malloc(nnz*sizeof(*ft->lfibers));
   fibers = ft->lfibers;  
   ptr = longestmode;
   for(i = 0; i < nnz; i++)
@@ -26,8 +26,8 @@ idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestm
       fibers[i] = inds[ptr];
       ptr += nmodes;
     }
-  ft->lvals = (real_t *)malloc(nnz*sizeof(real_t));
-  memcpy(ft->lvals, vals, (size_t)(nnz*sizeof(real_t)));
+  ft->lvals = (real_t *)malloc(nnz*sizeof(*ft->lvals));
+  memcpy(ft->lvals, vals, nnz*sizeof(real_t));
 
 }
 
@@ -35,7 +35,7 @@ idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t se
 {
   idx_t i, *fibers, ptr;
 
-  ft->slfibers = (idx_t *)malloc(nnz*sizeof(int));
+  ft->slfibers = (idx_t *)malloc(nnz*sizeof(*ft->slfibers));
   fibers = ft->slfibers;
 
   ptr = secondlongestmode;
@@ -45,18 +45,19 @@ idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t se
       ptr += nmodes;
     }
 
-  ft->slvals = (real_t *)malloc(nnz*sizeof(real_t));
-  memcpy(ft->slvals, vals, nnz*sizeof(real_t));
+  ft->slvals = (real_t *)malloc(nnz*sizeof(*ft->slvals));
+  memcpy(ft->slvals, vals, nnz*sizeof(*vals));
 }
 
 
 idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nnz, idx_t mode, struct fibertensor *ft, idx_t longest)
 {
-  idx_t i, j, *shrdinds, last, nfib, **xfibers, *fibers, ptr, imode, cont, lastfibcnt, lastptd;
+  idx_t i, j, *shrdinds, last, nfib, **xfibers, *fibers, ptr, cont, lastfibcnt, lastptd;
+  idx_t imode;
 	
 
-  ft->xfibers[mode] = (idx_t **)malloc((nmodes-1)*sizeof(idx_t *));
-  shrdinds = (idx_t *)malloc((nmodes-1)*sizeof(int));
+  ft->xfibers[mode] = (idx_t **)malloc((nmodes-1)*sizeof(*ft->xfibers[mode]));
+  shrdinds = (idx_t *)malloc((nmodes-1)*sizeof(*shrdinds));
 
   if(longest)
     fibers = ft->lfibers;
@@ -112,7 +113,7 @@ idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nn
           last = i;	
         } 
       //allocate space for the last level fiber pointer
-      xfibers[nmodes-imode-1] = (idx_t *)malloc((nfib+1)*2*sizeof(int));
+      xfibers[nmodes-imode-1] = (idx_t *)malloc((nfib+1)*2*sizeof(*xfibers[nmodes-imode-1]));
 
       //find pointers to fiber starting positions
       //xfibers[nmodes-2][fid*2]: starting position of the fiber in fibers
@@ -173,24 +174,25 @@ idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nn
 
 }
 
-idx_t get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
+void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
 {
-    idx_t i,j, k, dim, cnt, least, min, midx;
-    idx_t *tmpArr = (idx_t *) malloc(sizeof(int) * nmodes);
+    idx_t i,j, k, cnt, midx;
+    idx_t dim, min, least;
+    idx_t *tmpArr = (idx_t *) malloc(sizeof(*tmpArr) * nmodes);
     for(i=0; i< nmodes; i++){
         tmpArr[ i ] = gdims[i];
     }
     cnt = 0;
-    least = -1; 
+    least = 0; 
     while ( cnt < nmodes ){
-        min = INT_MAX;
+        min = IDX_T_MAX;
         for(i=0; i< nmodes; i++){
             if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= -2){
                 min = gdims[i];
                 midx = i;
             }
         }
-        tmpArr[midx] = -2;
+        tmpArr[midx] = 0;
         least = min;
         order[cnt] = midx;
         cnt++; 
@@ -239,7 +241,7 @@ idx_t get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
 
   for(i = 0; i < nmodes; i++)
     {
-      min = INT_MAX;
+      min = IDX_T_MAX;
       for(j = 0; j < nmodes; j++)
         {
           if(mark[j] == 0 && minecnt[j] < min)
@@ -262,23 +264,26 @@ idx_t get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
 
 idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft)
 {
-  idx_t nmodes, i, c, j, nnz, *inds, min, *order, lmode;
-
+  idx_t nmodes,  *order, lmode;
+  idx_t i, c, j, nnz, *inds, min;
   nmodes = gs->nmodes;
   nnz = t->nnz;
 
-  gs->sporder = (idx_t *)malloc(nmodes*sizeof(int));
+#ifdef NA_DBG
+        na_log(dbgfp, "hello from get_fibertensor\n");
+#endif
+  gs->sporder = malloc(nmodes*sizeof(*gs->sporder));
   get_sparsity_order(gs->gdims, gs->sporder, gs->nmodes);
   //get_sparsity_order(t, t->inds, t->sporder);
   ft->lmode = gs->sporder[nmodes-1];
 
-  ft->order = (idx_t **)malloc(nmodes*sizeof(idx_t *));
-  ft->xfibers = (idx_t ***)malloc(nmodes*sizeof(idx_t **));
-  ft->topmostcnt = (idx_t *)malloc(nmodes*sizeof(int));
+  ft->order = malloc(nmodes*sizeof(*ft->order));
+  ft->xfibers = malloc(nmodes*sizeof(*ft->xfibers));
+  ft->topmostcnt = malloc(nmodes*sizeof(*ft->topmostcnt));
        
   for(i = 0; i < nmodes; i++)
     {
-      ft->order[i] = (idx_t *)malloc(nmodes*sizeof(int));
+      ft->order[i] = malloc(nmodes*sizeof(*ft->order[i]));
       order = ft->order[i];
       c = 0;
       order[c++] = i;
@@ -286,8 +291,28 @@ idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft
         if(gs->sporder[j] != i)
           order[c++] = gs->sporder[j];
 
+#ifdef NA_DBG
+      MPI_Barrier(MPI_COMM_WORLD);
+        na_log(dbgfp, "\tmode %d before sort\n", i);
+#endif
+/*           {
+ *               volatile idx_t tt = 0;
+ *               printf("PID %d on %d ready for attach\n", gs->mype,  getpid());
+ *               fflush(stdout);
+ *               while (0 == tt)
+ *                   sleep(5);
+ *           }
+ */
       radixsort(t->inds, t->vals, nnz, nmodes, order, gs->ldims);
+#ifdef NA_DBG
+      MPI_Barrier(MPI_COMM_WORLD);
+        na_log(dbgfp, "\tmode %d after sort\n", i);
+#endif
       checksort(t->inds, nnz, nmodes, order);
+#ifdef NA_DBG
+      MPI_Barrier(MPI_COMM_WORLD);
+        na_log(dbgfp, "\tmode %d after checksort\n", i);
+#endif
       if(i != ft->lmode)
         {
           if(ft->lfibers == NULL)
@@ -300,6 +325,10 @@ idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft
             get_secondlongest_fibers(t->inds, t->vals, nmodes, gs->sporder[nmodes-2], nnz, ft);
           point_fibers(gs->mype, t->inds, order, nmodes, nnz, i, ft, 0);
         }
+#ifdef NA_DBG
+      MPI_Barrier(MPI_COMM_WORLD);
+        na_log(dbgfp, "\tmode %d after point_fibers\n", i);
+#endif
     }
 
 }

@@ -27,7 +27,8 @@ void free_cp_buffers(struct genst *gs)
 
 void compute_inverse(struct genst *gs, idx_t mode, real_t *inverse)
 {
-    idx_t i, j, k, nmodes, size, base, cprank;
+    idx_t i, j, k, size, base;
+    idx_t nmodes, cprank;
     real_t *uTu, inner;
 
     cprank = gs->cprank;
@@ -302,7 +303,8 @@ void normalizemax(struct genst *gs, idx_t mode, real_t *lambda)
 
 void compute_aTa(struct genst *gs, idx_t mode)
 {
-    idx_t i, j, k, size, cprank, ldim, ptr1, ptr2;
+    idx_t i, j, k, size, ldim, ptr1, ptr2;
+    idx_t cprank;
     real_t *buffer, *mat, inner, alpha, beta;
 
     cprank = gs->cprank;
@@ -369,7 +371,8 @@ real_t compute_input_norm(real_t *vals, idx_t lnnz)
 
 real_t compute_fit(struct genst *gs, real_t *matm, real_t inputnorm, idx_t mode, real_t *lambda)
 {
-    idx_t i, j, ptr, nmodes, cprank, size, ldim;
+    idx_t i, j, ptr, size, ldim;
+    idx_t nmodes, cprank;
     real_t decompnorm, myinner, inner, residual, *buffer, *uTu, *mat;
 
     ldim = gs->ldims[mode];
@@ -420,13 +423,14 @@ real_t compute_fit(struct genst *gs, real_t *matm, real_t inputnorm, idx_t mode,
 }
 
 
-idx_t cp_als_stats_fg(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *mttkrptime, double *comm1time, double *comm2time, idx_t *cnt_st)
+void cp_als_stats_fg(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *mttkrptime, double *comm1time, double *comm2time, idx_t *cnt_st)
 {
 
-    idx_t it, i, nmodes, maxldim;
+    idx_t it, i, maxldim;
+    idx_t nmodes, pid;
     double start, end; 
     tmr_t *mttkrpT, *comm1T, *comm2T;
-    idx_t pid = MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    pid = gs->mype; 
 
     nmodes = gs->nmodes;
 
@@ -482,17 +486,15 @@ idx_t cp_als_stats_fg(struct genst *gs, struct tensor *t, struct fibertensor *ft
     free(comm1T); free(mttkrpT); free(comm2T);
 
     free_cp_buffers(gs);
-
-    return 0;
 }
 
-idx_t cp_als_fg(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime)
+void cp_als_fg(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime)
 {
 
-    idx_t it, i, nmodes, maxldim;
+    idx_t it, i, maxldim;
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
 
-    nmodes = gs->nmodes;
+    idx_t nmodes = gs->nmodes;
     lambda = (real_t *)malloc(gs->cprank*sizeof(real_t));
     if(gs->fiber ==1)
         vals = ft->lvals;
@@ -546,18 +548,15 @@ idx_t cp_als_fg(struct genst *gs,struct tensor *t,  struct fibertensor *ft, stru
     MPI_Barrier(MPI_COMM_WORLD);
     stop_timer(&cpT);
     *cptime = cpT.elapsed / niters;
-
     free_cp_buffers(gs);
-
     free(inverse);
-
-    return 0;
 }
 
-idx_t cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime)
+void cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime)
 {
 
-    idx_t it, i, nmodes, maxldim;
+    idx_t it, i, maxldim;
+    idx_t nmodes; 
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
 
     nmodes = gs->nmodes;
@@ -614,19 +613,16 @@ idx_t cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, 
     *cptime = cpT.elapsed / niters;
 
     free_cp_buffers(gs);
-
     free(inverse);
-
-    return 0;
 }
 
-idx_t cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
+void cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
 {
 
-    idx_t it, i, nmodes, maxldim;
+    idx_t it, i, maxldim;
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
 
-    nmodes = gs->nmodes;
+    idx_t nmodes = gs->nmodes;
     lambda = (real_t *)malloc(gs->cprank*sizeof(real_t));
     tmr_t *mttkrpT, *comm1T, *comm2T, *mmT, *othersT;
     mttkrpT = malloc(sizeof(*mttkrpT) * nmodes);  
@@ -729,16 +725,14 @@ idx_t cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor 
     free_cp_buffers(gs);
 
     free(inverse);
-
-    return 0;
 }
-idx_t cp_als_fg_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
+void cp_als_fg_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
 {
 
-    idx_t it, i, nmodes, maxldim;
+    idx_t it, i, maxldim;
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
 
-    nmodes = gs->nmodes;
+    idx_t nmodes = gs->nmodes;
     lambda = (real_t *)malloc(gs->cprank*sizeof(real_t));
     tmr_t *mttkrpT, *comm1T, *comm2T, *mmT, *othersT;
     mttkrpT = malloc(sizeof(*mttkrpT) * nmodes);  
@@ -833,8 +827,5 @@ idx_t cp_als_fg_time(struct genst *gs, struct tensor *t, struct fibertensor *ft,
         mmtime[i] =         mmT[i].elapsed / niters;
     }
     free_cp_buffers(gs);
-
     free(inverse);
-
-    return 0;
 }

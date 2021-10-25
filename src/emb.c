@@ -12,11 +12,6 @@
 void emb_get_stats(ecomm *ec, idx_t *maxSendVol, idx_t *maxRecvVol, idx_t *totalVol , idx_t *maxSendMsgs, idx_t *maxRecvMsgs, idx_t *totalMsgs)
 {
     idx_t i;
-    idx_t rank;
-    idx_t nprocs;
-
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     /* these include header */
     idx_t *vstot = malloc(sizeof(*vstot) * ec->ndims);
@@ -105,8 +100,8 @@ void get_neighbors(idx_t mypid, idx_t *sendto, idx_t ndims, idx_t dir){
 
 idx_t get_comm_dim(idx_t mypid, idx_t dst, idx_t currDim, idx_t ndims, idx_t dir)
 {
-    unsigned int pos=currDim+1;
-    unsigned int mask = (mypid ^ dst);
+    idx_t pos=currDim+1;
+    idx_t mask = (mypid ^ dst);
 
 #ifdef NA_DBG_L3
     na_log(dbgfp, "\t\t in get_comm_dim, mypid=%d dst=%d mask = %d pos=%d\n", mypid, dst, mask, pos);
@@ -211,8 +206,11 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
 #ifdef NA_DBG
     na_log(dbgfp, "%s\n", "\tin emb_setup" );
 #endif
-    MPI_Comm_rank(MPI_COMM_WORLD, &mypid);
-    MPI_Comm_size(MPI_COMM_WORLD, &npes);
+    int mypid2, npes2;
+    MPI_Comm_rank(MPI_COMM_WORLD, &mypid2);
+    MPI_Comm_size(MPI_COMM_WORLD, &npes2);
+    mypid = (idx_t) mypid2;
+    npes = (idx_t) npes2;
     ec->dir = dir;
 
     /* prepare HI and HM */
@@ -613,7 +611,7 @@ void ecomm_communicate_allreduce(ecomm *ec, real_t *orig_inp, real_t *orig_out, 
     idx_t * HI = ec->HI;
 
 #ifdef NA_DBG
-    idx_t mype;
+    int mype;
     MPI_Comm_rank(MPI_COMM_WORLD, &mype);
     na_log(dbgfp, "\twelcome to ecomm comm all_reduce\n");
 #endif
