@@ -9,6 +9,8 @@
 #include "util.h"
 #include <math.h>
 
+#define ONE 1ULL
+
 void emb_get_stats(ecomm *ec, idx_t *maxSendVol, idx_t *maxRecvVol, idx_t *totalVol , idx_t *maxSendMsgs, idx_t *maxRecvMsgs, idx_t *totalMsgs)
 {
     idx_t i;
@@ -93,7 +95,7 @@ void get_neighbors(idx_t mypid, idx_t *sendto, idx_t ndims, idx_t dir){
     idx_t i;
 
     for (i = 0; i < ndims; ++i) {
-        sendto[i] = mypid ^ (1 << i);
+        sendto[i] = mypid ^ (ONE << i);
     }
 
 }
@@ -109,7 +111,7 @@ idx_t get_comm_dim(idx_t mypid, idx_t dst, idx_t currDim, idx_t ndims, idx_t dir
 
     if (dir == 0) {
         mask >>= currDim+1;
-        while(!(mask & 1)){
+        while(!(mask & ONE)){
             pos++;
             mask >>= 1;
         }
@@ -124,7 +126,7 @@ idx_t get_comm_dim(idx_t mypid, idx_t dst, idx_t currDim, idx_t ndims, idx_t dir
     else{
         idx_t tcnt = 0;
         //fprintf(stderr, "hello I'm stuck %d\n", tcnt++);
-        while(!(mask & (1 <<  pos))){
+        while(!(mask & (ONE <<  pos))){
             pos--;
         }
         /* 	pos++;
@@ -247,7 +249,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         dim = (dir == 0 )? dd : ndims-1-dd;
         /* for each dim, send/recv the amount of comm*/
         currN = ec->neighbor[dim];
-        mask = currN & (1 << dim);
+        mask = currN & (ONE << dim);
         nmsgs = 0;
         sendSize[0] = 0; sendSize[1] = 0; sendSize[2] = 0;
         for (i = 0; i < nsendwho; ++i) {
@@ -256,7 +258,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
             if(SHV == currN && !sendtag[i] ){
                 sendSize[0] += (xsendind[SH+1] - xsendind[SH]);
             }
-            else if (!sendtag[i] && !((SHV ^ mask) & (1 << dim))) {
+            else if (!sendtag[i] && !((SHV ^ mask) & (ONE << dim))) {
                 sendSize[1] += (xsendind[SH+1] - xsendind[SH]);
                 nmsgs++;
             }
@@ -273,7 +275,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
             tmsg = head[dim];
             i = 0;
             while(NULL != tmsg){
-                if(tmsg->dst == currN || !((tmsg->dst ^ mask) & (1<<dim))) {
+                if(tmsg->dst == currN || !((tmsg->dst ^ mask) & (ONE << dim))) {
                     sendSize[1] += tmsg->size;
                     nmsgs++;
                 }
@@ -323,7 +325,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
             SHV = HM[sendwho[i]];
             if( SHV == currN && !sendtag[i]){
                 //memcpy(tptr, &data[indsmap[sendind[j]]], f * sizeof(real_t));	
-                memcpy(tptr, &sendind[xsendind[SH]], sizeof(int) * (xsendind[SH+1] - xsendind[SH]));
+                memcpy(tptr, &sendind[xsendind[SH]], sizeof(idx_t) * (xsendind[SH+1] - xsendind[SH]));
                 tptr += (xsendind[SH+1] - xsendind[SH]) ;
                 sendtag[i] = 1;
             }
@@ -342,11 +344,11 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         for (i = 0; i < nsendwho; ++i) {
             SH = sendwho[i];
             SHV = HM[sendwho[i]];
-            if ((SHV != currN ) && !sendtag[i] && !(( SHV^mask) & (1 << dim))){
+            if ((SHV != currN ) && !sendtag[i] && !(( SHV^mask) & (ONE << dim))){
                 *(tptr++) = HM[mypid];
                 *(tptr++) = SHV;
                 *(tptr++) = (xsendind[SH+1] - xsendind[SH]);
-                memcpy(tptr, &sendind[xsendind[SH]], sizeof(int) * (xsendind[SH+1] - xsendind[SH]));
+                memcpy(tptr, &sendind[xsendind[SH]], sizeof(idx_t) * (xsendind[SH+1] - xsendind[SH]));
                 tptr += (xsendind[SH+1] - xsendind[SH]) ;
                 st_send_offsets[dim][tt] = (xsendind[SH+1] - xsendind[SH]);
                 sendtag[i] = 1;
@@ -369,11 +371,11 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
 #endif
             msg tm = head[dim];
             while(tm != NULL){	
-                if (tm->dst == currN || !((tm->dst ^ mask) & (1 << dim))){
+                if (tm->dst == currN || !((tm->dst ^ mask) & (ONE << dim))){
                     *(tptr++) = tm->src;
                     *(tptr++) = tm->dst;
                     *(tptr++) = tm->size;
-                    memcpy(tptr, tm->inds, sizeof(int) * tm->size);
+                    memcpy(tptr, tm->inds, sizeof(idx_t) * tm->size);
                     tptr += tm->size ;
                     st_send_offsets[dim][tt] = tm->size;
                     tm->send_dim = dim; tm->send_id = tt-1;

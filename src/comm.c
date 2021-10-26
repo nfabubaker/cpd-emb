@@ -237,8 +237,8 @@ void setup_fg_communication_post(genst *gs,struct tensor *t, comm *co, stats *st
 void init_emb_things(genst *gs){
     comm *co = gs->comm; 
     idx_t i,j, ndims;
-    ndims = log2(gs->npes);
-    co->ec = malloc(sizeof(*co->ec) * gs->nmodes * 2);
+    ndims = (idx_t) log2((double)gs->npes);
+    co->ec = malloc(sizeof(ecomm *) * gs->nmodes * 2);
     
     /* for each mode, setup two hypercubes*/
     for (i = 0; i < gs->nmodes; ++i) {

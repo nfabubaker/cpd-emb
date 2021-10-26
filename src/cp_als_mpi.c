@@ -122,7 +122,7 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
     if (gs->mype == 0) {
         substring(tensorfile, ftname);
         substring_b(tname, ftname);
-        printf("%s %d", tname, gs->npes);
+        printf("%s %zu", tname, gs->npes);
     }
 
     /* first pridx_t total statss */
@@ -174,13 +174,13 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
             }
         }
         /* pridx_t statss without stfw */
-        printf(" %d %d %d %d %d %d", maxvf, maxve, totv, maxmf, maxme, totm);
+        printf(" %zu %zu %zu %zu %zu %zu", maxvf, maxve, totv, maxmf, maxme, totm);
         /* pridx_t stfw-based statss */
         if( gs->comm_type == EMB)
-            printf(" %d %d %d %d %d %d", stfw_maxvf, stfw_maxve, stfw_totv, stfw_maxmf, stfw_maxme, stfw_totm);
+            printf(" %zu %zu %zu %zu %zu %zu", stfw_maxvf, stfw_maxve, stfw_totv, stfw_maxmf, stfw_maxme, stfw_totm);
         /* pridx_t other statss */
         double mult = 1e-6;
-        printf(" %d %d %f %f %f %f %f %f\n", maxr, totr, mttkrpT*mult, foldT*mult, expandT*mult, mmT*mult, othersT*mult, cptime*mult);
+        printf(" %zu %zu %f %f %f %f %f %f\n", maxr, totr, mttkrpT*mult, foldT*mult, expandT*mult, mmT*mult, othersT*mult, cptime*mult);
 
         /* Now per-mode statss */
         for (i = 0; i < gs->nmodes; ++i) {
@@ -189,12 +189,12 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
                 sst_m = stfw_m[i];
                 sst_s = stfw_s[i];
             }
-            printf("%s %d %d %d %d %d %d %d",tname, gs->npes, st[3], st[4], st[5], st[0], st[1], st[2]);
+            printf("%s %zu %zu %zu %zu %zu %zu %zu",tname, gs->npes, st[3], st[4], st[5], st[0], st[1], st[2]);
             /* pridx_t stfw-based statss */
             if( gs->comm_type == EMB)
-                printf(" %d %d %d %d %d %d", sst_m[0], sst_m[1], sst_s[0], sst_m[2], sst_m[3], sst_s[1]);
+                printf(" %zu %zu %zu %zu %zu %zu", sst_m[0], sst_m[1], sst_s[0], sst_m[2], sst_m[3], sst_s[1]);
             /* pridx_t other statss */
-            printf(" %d %d %f %f %f %f\n", st[6], st[7], mult*mttkrptime[i], mult*comm1time[i], mult*comm2time[i], 0.0);
+            printf(" %zu %zu %f %f %f %f\n", st[6], st[7], mult*mttkrptime[i], mult*comm1time[i], mult*comm2time[i], 0.0);
         }
     }
 
@@ -323,8 +323,10 @@ int main(int argc, char *argv[]) {
     double gcptime;
     MPI_Reduce(&cptime, &gcptime, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     print_stats_v2(tensorfile, st, gcptime, mttkrptime, comm1time, comm2time, mmtime, otherstime, gs);
+    MPI_Finalize();
+    return 0;
+    MPI_Barrier(MPI_COMM_WORLD);
 #ifdef NOF_DBG
-        MPI_Barrier(MPI_COMM_WORLD);
     fprintf(stderr, "dbg: after pridx_t stat\n");
 #endif
     free(comm1time); free(comm2time);free(mttkrptime); free(mmtime); free(otherstime);
