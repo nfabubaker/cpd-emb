@@ -7,23 +7,32 @@
 #ifndef BASIC_H
 
 #define BASIC_H
-#define gsize 64
-#if gsize == 32
+#define idxsize 64
+#define valsize 32
+#if idxsize == 32
 
-#define real_t float
 #define idx_t uint32_t
 #define IDX_T_MAX UINT32_MAX 
-#define MPI_REAL_T MPI_FLOAT
 #define MPI_IDX_T MPI_UINT32_T
+typedef int inpf_t;
+#define MPI_INPF_T MPI_INT
 
-#elif gsize == 64
+#elif idxsize == 64
 
-#define real_t double
 #define idx_t uint64_t
 #define IDX_T_MAX UINT64_MAX 
-#define MPI_REAL_T MPI_DOUBLE
 #define MPI_IDX_T MPI_UINT64_T
-
+typedef int inpf_t;
+#define MPI_INPF_T MPI_INT
 #endif
+
+#if valsize == 32
+#define real_t float
+#define MPI_REAL_T MPI_FLOAT
+#elif valsize == 64
+#define MPI_REAL_T MPI_DOUBLE
+#define real_t double
+#endif
+
 #endif /* end of include guard BASIC_H */
 

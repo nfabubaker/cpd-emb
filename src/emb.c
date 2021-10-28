@@ -289,8 +289,8 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         na_log(dbgfp, "%s\n", "\t  just after initia count 2" );
 #endif
         sendSize[2] = nmsgs;
-        MPI_Send(sendSize, 3, MPI_IDX_T, HI[currN], 1, MPI_COMM_WORLD);
-        MPI_Recv(recvSize, 3, MPI_IDX_T, HI[currN], 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        MPI_Send(sendSize, 3, MPI_IDX_T, (int) HI[currN], 1, MPI_COMM_WORLD);
+        MPI_Recv(recvSize, 3, MPI_IDX_T, (int) HI[currN], 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         /*         MPI_Sendrecv(&sendSize, 3, MPI_IDX_T, currN, 1, &recvSize, 3, MPI_IDX_T, mypid, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         */
 #ifdef NA_DBG
@@ -317,7 +317,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         na_log(dbgfp,"\tI'm %d and I will recv %d from %d and will send %d\n", mypid, recvSize[0]+recvSize[1]+recvSize[2]*3, currN, sendSize[0]+sendSize[1]+nmsgs*3); 
 #endif
         MPI_Request req;
-        MPI_Irecv(recvBuff, recvSize[0]+recvSize[1] + recvSize[2]*3, MPI_IDX_T, HI[currN], 2, MPI_COMM_WORLD, &req );
+        MPI_Irecv(recvBuff, (int) (recvSize[0]+recvSize[1] + recvSize[2]*3),  MPI_IDX_T, (int) HI[currN], 2, MPI_COMM_WORLD, &req );
         idx_t *tptr = sendBuff;
         /* fitst, copy the data intended for neighbor */
         for (i = 0; i < nsendwho; ++i) {
@@ -388,7 +388,7 @@ ecomm *ecomm_setup(idx_t nsendwho, idx_t *sendwho, idx_t *xsendind, idx_t *sendi
         MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "%s\n", "\trecv rqsts issued, data4 copied to send");
 #endif
-        MPI_Send(sendBuff, sendSize[0] + sendSize[1] + nmsgs * 3, MPI_IDX_T, HI[currN], 2, MPI_COMM_WORLD);
+        MPI_Send(sendBuff, (int)(sendSize[0] + sendSize[1] + nmsgs * 3), MPI_IDX_T, (int) HI[currN], 2, MPI_COMM_WORLD);
         MPI_Wait(&req, MPI_STATUS_IGNORE);
 
 #ifdef NA_DBG
@@ -625,7 +625,7 @@ void ecomm_communicate_allreduce(ecomm *ec, real_t *orig_inp, real_t *orig_out, 
     for (dd = 0; dd < ndims; ++dd) {
         dim = (dir == 0) ? dd : ndims -1 - dd;
         /* issue Irecv */
-        MPI_Irecv(ec->recvbuff, (ec->xrecvptrs[dim][CT_CNT]-1) * embDataUnitSize + origDataUnitSize , MPI_REAL_T, HI[ec->neighbor[dim]], 33+dim, MPI_COMM_WORLD, &rqst);
+        MPI_Irecv(ec->recvbuff, (int)((ec->xrecvptrs[dim][CT_CNT]-1) * embDataUnitSize + origDataUnitSize) , MPI_REAL_T, (int) HI[ec->neighbor[dim]], 33+dim, MPI_COMM_WORLD, &rqst);
 
 #ifdef NA_DBG
         MPI_Barrier(MPI_COMM_WORLD);
@@ -657,7 +657,7 @@ void ecomm_communicate_allreduce(ecomm *ec, real_t *orig_inp, real_t *orig_out, 
         MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "\temb data copied, now send\n");
 #endif
-        MPI_Send(ec->sendbuff, (ec->xsendptrs[dim][CT_CNT]-1)*embDataUnitSize + origDataUnitSize, MPI_REAL_T, HI[ec->neighbor[dim]], 33+dim, MPI_COMM_WORLD);
+        MPI_Send(ec->sendbuff, (int)((ec->xsendptrs[dim][CT_CNT]-1)*embDataUnitSize + origDataUnitSize), MPI_REAL_T, (int) HI[ec->neighbor[dim]], 33+dim, MPI_COMM_WORLD);
 
         MPI_Wait(&rqst, MPI_STATUS_IGNORE);
 

@@ -159,11 +159,11 @@ void matrix_multiply(struct genst *gs, idx_t mode, real_t *matm, real_t *inverse
 
     alpha = 1.0;
     beta = 0.0;
-    if(sizeof(real_t) == sizeof(float))
+#if valsize == 32
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, dim, cprank, cprank, alpha, matm, cprank, inverse, cprank, beta, matw, cprank);
-    else
+#elif valsize == 64
         cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, dim, cprank, cprank, alpha, matm, cprank, inverse, cprank, beta, matw, cprank);
-
+#endif
 }
 
 void expand_and_normalize(struct genst *gs, ecomm *ec, idx_t mode, real_t *lambda)
@@ -183,10 +183,11 @@ void expand_and_normalize(struct genst *gs, ecomm *ec, idx_t mode, real_t *lambd
     for(i = 0; i < cprank; i++)
     {
 
-        if(sizeof(real_t) == sizeof(float))
+#if valsize == 32
             locallambda[i]=cblas_sdot(dim, &mat[i], cprank, &mat[i], cprank);
-        else
+#elif valsize == 64
             locallambda[i]=cblas_ddot(dim, &mat[i], cprank, &mat[i], cprank);
+#endif
 
         /* 		v = 0; */
         /* 		for(j = 0; j < dim; j++) */
@@ -233,11 +234,11 @@ void normalize2(struct genst *gs, idx_t mode, real_t *lambda)
     for(i = 0; i < cprank; i++)
     {
 
-
-        if(sizeof(real_t) == sizeof(float))
+#if valsize == 32
             locallambda[i]=cblas_sdot(dim, &mat[i], cprank, &mat[i], cprank);
-        else
+#elif valsize == 64
             locallambda[i]=cblas_ddot(dim, &mat[i], cprank, &mat[i], cprank);
+#endif
         /* 		v = 0; */
         /* 		for(j = 0; j < dim; j++) */
         /* 		{ */
@@ -336,12 +337,13 @@ void compute_aTa(struct genst *gs, idx_t mode)
 
     alpha = 1.0;
     beta = 0.0;
-    if(sizeof(real_t) == sizeof(float))
+#if valsize == 32
         cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 cprank, cprank, ldim, alpha, mat, cprank, mat, cprank, beta, buffer, cprank);
-    else
+#elif valsize == 64
         cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                 cprank, cprank, ldim, alpha, mat, cprank, mat, cprank, beta, buffer, cprank);
+#endif
 
     if(gs->comm_type != EMB)
         MPI_Allreduce(buffer, &(gs->uTu[mode*size]), size, MPI_REAL_T, MPI_SUM, MPI_COMM_WORLD);

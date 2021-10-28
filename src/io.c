@@ -82,8 +82,6 @@ return 0;
 }*/
 idx_t read_ckbd_tensor_nonzeros_large(char tensorfile[], struct tensor *t, struct genst *gs)
 {
-    typedef int64_t inpf_t;
-#define MPI_INPF_T MPI_INT64_T
     idx_t i, j, offset_all,  offset,  nnz, *inds, val, total ;
     inpf_t *tmp, buf[2];
     idx_t nmodes; 
@@ -92,12 +90,11 @@ idx_t read_ckbd_tensor_nonzeros_large(char tensorfile[], struct tensor *t, struc
     MPI_File fh;
     MPI_Status statsus;
 
-    assert(sizeof(idx_t) == sizeof(real_t));
-    idx_t of;
+    uint64_t of;
 
     nmodes = gs->nmodes;
-    offset = gs->mype*2*sizeof(inpf_t) + gs->mype * sizeof(int);
-    offset_all = gs->npes*(2*sizeof(inpf_t) + sizeof(int));
+    offset = gs->mype*2*sizeof(int64_t) + gs->mype * sizeof(int);
+    offset_all = gs->npes*(2*sizeof(int64_t) + sizeof(int));
 
     //MPI_Barrier(MPI_COMM_WORLD);
     //printf("b4 mpi read \n");
@@ -107,14 +104,13 @@ idx_t read_ckbd_tensor_nonzeros_large(char tensorfile[], struct tensor *t, struc
     int tnmodes;
     MPI_File_open(MPI_COMM_WORLD, tensorfile, MPI_MODE_RDONLY, MPI_INFO_NULL, &fh);
     MPI_File_read_at(fh, offset, &tnmodes, 1, MPI_INT, &statsus);
-    MPI_File_read_at(fh, offset+sizeof(int), buf, 2, MPI_INPF_T, &statsus);
+    MPI_File_read_at(fh, offset+sizeof(int), buf, 2, MPI_INT64_T, &statsus);
     nmodes = (idx_t) tnmodes;
-    assert(nmodes == gs->nmodes);
 #ifdef NA_DBG
     na_log(dbgfp, "\t\tafter MPI_File_read_at\n");
 #endif
     nnz = (idx_t) buf[0];
-    of = (idx_t) buf[1]*(nmodes+1)*sizeof(inpf_t) + offset_all;
+    of = (uint64_t) buf[1]*(nmodes+1)*sizeof(inpf_t) + offset_all;
     t->inds =  malloc(nmodes*nnz*sizeof(*t->inds));
     t->vals =  malloc(nnz*sizeof(*t->vals));
     t->nnz = nnz;
@@ -157,8 +153,6 @@ idx_t read_ckbd_tensor_nonzeros_large(char tensorfile[], struct tensor *t, struc
 
 idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct genst *gs)
 {
-    typedef int inpf_t;
-#define MPI_INPF_T MPI_INT
     idx_t i, j, offset,  nnz, *inds, val, total ;
     inpf_t *tmp, *buf;
     idx_t nmodes; 
@@ -167,8 +161,7 @@ idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct gens
     MPI_File fh;
     MPI_Status statsus;
 
-    assert(sizeof(idx_t) == sizeof(real_t));
-    idx_t of;
+    uint64_t of;
 
     nmodes = gs->nmodes;
     offset = gs->mype*3*sizeof(inpf_t);
@@ -186,7 +179,7 @@ idx_t read_ckbd_tensor_nonzeros(char tensorfile[], struct tensor *t, struct gens
     na_log(dbgfp, "\t\tafter MPI_File_read_at\n");
 #endif
     nnz = (idx_t) buf[1];
-    of = (idx_t) buf[2]*(nmodes+1)*sizeof(inpf_t)+gs->npes*3*sizeof(inpf_t);
+    of = (uint64_t) buf[2]*(nmodes+1)*sizeof(inpf_t)+gs->npes*3*sizeof(inpf_t);
     t->inds =  malloc(nmodes*nnz*sizeof(*t->inds));
     t->vals =  malloc(nnz*sizeof(*t->vals));
     t->nnz = nnz;
@@ -376,9 +369,9 @@ idx_t read_fg_tensor(char tensorfile[], char partfile[], struct tensor *t, struc
     if(endian)
         read_ckbd_tensor_nonzeros_endian(tensorfile, t, gs);
     else{
-#if gsize == 64
+#if idxsize == 64
         read_ckbd_tensor_nonzeros_large(tensorfile, t, gs);
-#elif gsize == 32
+#elif idxsize == 32
         read_ckbd_tensor_nonzeros(tensorfile, t, gs);
 #endif
     }

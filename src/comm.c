@@ -145,13 +145,13 @@ void setup_fg_communication(struct genst *gs, struct tensor *t,
         MPI_Request req[size];
         for (j = 0; j < size; j++)
             if (j != mype)
-                MPI_Irecv(&(co->xsendind[i][j + 1]), 1, MPI_IDX_T, j, 1, MPI_COMM_WORLD,
+                MPI_Irecv(&(co->xsendind[i][j + 1]), 1, MPI_IDX_T, (int) j, 1, MPI_COMM_WORLD,
                         j < mype ? &req[j] : &req[j - 1]);
 
         for (j = 0; j < size; j++) {
             if (j != mype) {
                 idx_t nrecv = co->xrecvind[i][j + 1] - co->xrecvind[i][j];
-                MPI_Send(&nrecv, 1, MPI_IDX_T, j, 1, MPI_COMM_WORLD);
+                MPI_Send(&nrecv, 1, MPI_IDX_T, (int) j, 1, MPI_COMM_WORLD);
             }
         }
 
@@ -352,8 +352,9 @@ void receive_partial_products_fg(struct genst *t, idx_t mode, real_t *matm) {
     na_log(dbgfp, "dbg p4.0.1 hello from recv partial products\n");
 #endif
     idx_t i, j, iwrite, iread, nrecvwho, nsendwho, *recvwho, *sendwho, *xrecvind,
-        *xsendind, *recvind, who, cprank, size, *sendcnt, *recvcnt, *senddisp,
+        *xsendind, *recvind, cprank, size, *sendcnt, *recvcnt, *senddisp,
         *recvdisp;
+    int who, srsize;
     real_t *recvbuf;
     struct comm *co;
 
@@ -406,15 +407,17 @@ void receive_partial_products_fg(struct genst *t, idx_t mode, real_t *matm) {
             MPI_Request req[nrecvwho];
 
             for (i = 0; i < nrecvwho; i++) {
-                who = recvwho[i];
+                who = (int) recvwho[i];
+                srsize = (int) ((xrecvind[who + 1] - xrecvind[who]) * cprank);
                 MPI_Irecv(&recvbuf[xrecvind[who] * cprank],
-                        (xrecvind[who + 1] - xrecvind[who]) * cprank, MPI_REAL_T, who,
+                        srsize, MPI_REAL_T, who,
                         3, MPI_COMM_WORLD, &req[i]);
             }
             for (i = 0; i < nsendwho; i++) {
-                who = sendwho[i];
+                who = (int) sendwho[i];
+                srsize = (int) ((xsendind[who + 1] - xsendind[who]) * cprank);
                 MPI_Send(&matm[xsendind[who] * cprank],
-                        (xsendind[who + 1] - xsendind[who]) * cprank, MPI_REAL_T, who,
+                        srsize, MPI_REAL_T, who,
                         3, MPI_COMM_WORLD);
             }
 
@@ -431,9 +434,10 @@ void receive_partial_products_fg(struct genst *t, idx_t mode, real_t *matm) {
 
 void send_updated_rows_fg(struct genst *gs, idx_t mode) {
 
-    idx_t i, j, ptr, who, nrecvwho, nsendwho, size, cprank, *recvwho, *sendwho,
+    idx_t i, j, ptr, nrecvwho, nsendwho, size, cprank, *recvwho, *sendwho,
         *xsendind, *xrecvind, *sendind, *recvind, *map, start, end, *sendcnt,
         *recvcnt, *senddisp, *recvdisp;
+    int who, srsize;
     real_t *sendbuf, *mat;
     struct comm *co;
 
@@ -458,7 +462,7 @@ void send_updated_rows_fg(struct genst *gs, idx_t mode) {
     sendbuf = co->buffer;
     ptr = 0;
     for (i = 0; i < nsendwho; i++) {
-        who = sendwho[i];
+        who = (int) sendwho[i];
         start = xsendind[who];
         end = xsendind[who + 1];
         for (j = start; j < end; j++) {
@@ -478,7 +482,7 @@ void send_updated_rows_fg(struct genst *gs, idx_t mode) {
             setintzero(recvdisp, size);
 
             for (i = 0; i < nrecvwho; i++) {
-                who = recvwho[i];
+                who = (int) recvwho[i];
                 recvcnt[who] = (xrecvind[who + 1] - xrecvind[who]) * cprank;
                 recvdisp[who] = xrecvind[who] * cprank;
             }
@@ -502,17 +506,19 @@ void send_updated_rows_fg(struct genst *gs, idx_t mode) {
             MPI_Request req[nrecvwho];
 
             for (i = 0; i < nrecvwho; i++) {
-                who = recvwho[i];
+                who = (int) recvwho[i];
+                srsize = (int) ((xrecvind[who + 1] - xrecvind[who]) * cprank);
                 MPI_Irecv(&mat[xrecvind[who] * cprank],
-                        (xrecvind[who + 1] - xrecvind[who]) * cprank, MPI_REAL_T, who,
+                        srsize, MPI_REAL_T, who,
                         4, MPI_COMM_WORLD, &req[i]);
             }
 
             // send computed rows
             for (i = 0; i < nsendwho; i++) {
-                who = sendwho[i];
+                who = (int) sendwho[i];
+                srsize = (int) ((xsendind[who + 1] - xsendind[who]) * cprank);
                 MPI_Send(&sendbuf[xsendind[who] * cprank],
-                        (xsendind[who + 1] - xsendind[who]) * cprank, MPI_REAL_T, who,
+                        srsize, MPI_REAL_T, who,
                         4, MPI_COMM_WORLD);
             }
 
