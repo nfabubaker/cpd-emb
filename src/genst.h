@@ -66,6 +66,7 @@ typedef struct genst
 
   // checkerboard
   idx_t comm_type;
+  idx_t use_pfile;
 
   char hc_imap_FN[1024];
   idx_t use_hc_imap;

@@ -556,6 +556,9 @@ void cp_als_fg(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struc
 
 void cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime)
 {
+#ifdef NA_DBG
+    na_log(dbgfp, "hello from cp_als_fg_emb_time\n");
+#endif
 
     idx_t it, i, maxldim;
     idx_t nmodes; 
@@ -584,6 +587,9 @@ void cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, s
     {
         for(i = 0; i < nmodes; i++)
         {
+#ifdef NA_DBG
+    na_log(dbgfp, "\tstarting iteration %zu mode %zu\n", it, i);
+#endif
             setreal_tzero(gs->matm, gs->ldims[i]*gs->cprank);
             mttkrp(gs, t, ft, csftns, i, gs->matm);
 
@@ -620,6 +626,9 @@ void cp_als_fg_emb(struct genst *gs,struct tensor *t,  struct fibertensor *ft, s
 
 void cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
 {
+#ifdef NA_DBG
+    na_log(dbgfp, "hello from cp_als_fg_emb_time\n");
+#endif
 
     idx_t it, i, maxldim;
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
@@ -662,6 +671,9 @@ void cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor *
     start_timer(&cpT);
     for(it = 0; it < niters; it++)
     {
+#ifdef NA_DBG
+    na_log(dbgfp, "\tstarting iteration %zu\n", it);
+#endif
         for(i = 0; i < nmodes; i++)
         {
             setreal_tzero(gs->matm, gs->ldims[i]*gs->cprank);
@@ -730,7 +742,9 @@ void cp_als_fg_emb_time(struct genst *gs, struct tensor *t, struct fibertensor *
 }
 void cp_als_fg_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, struct csftensor *csftns, idx_t niters, double *cptime, double *mmtime, double *otherstime , double *mttkrptime, double *comm1time, double * comm2time)
 {
-
+#ifdef NA_DBG
+    na_log(dbgfp, "hello from cp_als_fg_time\n");
+#endif
     idx_t it, i, maxldim;
     real_t *lambda, inputnorm, fit, oldfit, *inverse, *vals;
 
@@ -771,6 +785,9 @@ void cp_als_fg_time(struct genst *gs, struct tensor *t, struct fibertensor *ft, 
     MPI_Barrier(MPI_COMM_WORLD);
     start_timer(&cpT);
     for(it = 0; it < niters; it++)
+#ifdef NA_DBG
+    na_log(dbgfp, "\tstarting iteration %zu\n", it);
+#endif
     {
         for(i = 0; i < nmodes; i++)
         {

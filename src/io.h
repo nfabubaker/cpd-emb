@@ -19,7 +19,7 @@ idx_t read_ckbd_tensor_nonzeros_endian(char tensorfile[], struct tensor *t, stru
 
 idx_t read_fg_partition(char partfile[], struct genst *gs);
 
-idx_t read_fg_tensor(char tensorfile[], char partfile[], struct tensor *t, struct genst *gs, idx_t endian);
+tensor * read_fg_tensor(char tensorfile[], char partfile[],  struct genst *gs, idx_t endian);
 void read_hc_imap(char filename[], idx_t nmodes, idx_t npes, idx_t **imap_arr);
 
 #endif

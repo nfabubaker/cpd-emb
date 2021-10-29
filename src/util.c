@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <mpi.h>
+#include <assert.h>
 /*void *myMalloc(size_t size)
   {
   void *p = malloc(size);
@@ -134,19 +135,19 @@ void substring_b(char *dst, char *src){
     dst[sl] = '\0';
 }
 
-void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order, idx_t *dims)
+void radixsort(idx_t *inds, real_t *vals, const idx_t nnz, const idx_t nmodes, const idx_t *order, const idx_t *dims)
 {
 #ifdef NA_DBG
         na_log(dbgfp, "\thello from radixsort\n");
 #endif
 
-    idx_t i, j, ptr, ptr2, *cnt, *tmpinds, size, dim;
+    idx_t i, j, k, ptr, ptr2, *cnt, *tmpinds, size, dim;
     idx_t mode;
     real_t *tmpvals;
 
     size = ((idx_t) nmodes)*sizeof(idx_t);
 
-    tmpinds = (idx_t *)malloc(nnz*( (idx_t) nmodes)*sizeof(*tmpinds));
+    tmpinds = malloc(nnz*nmodes*sizeof(*tmpinds));
     tmpvals = (real_t *)malloc(nnz*sizeof(real_t));
 
     for(i = 0; i < nmodes; i++)
@@ -178,6 +179,7 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
         ptr = mode;
         for(j = 0; j < nnz; j++)
         {
+            assert(inds[ptr] < dim && "inds is larger than dim");
             cnt[inds[ptr]+1]++;
             ptr += nmodes;
         }
@@ -188,23 +190,36 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
             cnt[j] += cnt[j-1];
 
 #ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "\t\tbefore inds and vals memcopy,  mode %zu\n", i);
 #endif
         memcpy(tmpinds, inds, nnz*nmodes*sizeof(*tmpinds));
         memcpy(tmpvals, vals, nnz*sizeof(*tmpvals));
 #ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "\t\tafter inds and vals memcopy,  mode %zu\n", i);
+        na_log(dbgfp, "\t\t nnz=%zu size=%zu, dim=%zu\n", nnz, size, dim);
 #endif
 
         ptr = mode;
         for(j = 0; j < nnz; j++)
         {	
+            assert(tmpinds[ptr] < (dim-1) && "tmpinds is larger than dim");
             ptr2 = cnt[tmpinds[ptr]]++;
-            memcpy(&inds[ptr2*nmodes], &tmpinds[j*nmodes], size);
+/*             memcpy(&inds[ptr2*nmodes], &tmpinds[j*nmodes], size);
+ */
+/*             na_log(dbgfp, "\t\t copying  ptr2= %zu  from ptr= %zu, ind_m=%zu\n", ptr2, ptr, tmpinds[ptr]);
+ */
+            for (k = 0; k < nmodes; ++k) {
+                inds[ptr2 * nmodes + k] = tmpinds[j*nmodes + k];
+            }
+/*             na_log(dbgfp, "\t\t DONE copying  ptr2=%zu \n", ptr2);
+ */
             vals[ptr2] = tmpvals[j];
             ptr += nmodes;
         }
 #ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
         na_log(dbgfp, "\t\tafter 2nd memcopy,  mode %zu\n", i);
 #endif
 
@@ -217,9 +232,9 @@ void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order,
 
 }
 
-idx_t checksort(idx_t *dims, idx_t nnz, idx_t nmodes, idx_t *order)
+idx_t checksort(const idx_t *dims, const idx_t nnz, const idx_t nmodes, const idx_t *order)
 {
-    idx_t i, j, cont;
+    idx_t i, j, cont, ret = 1;
     for(i = 1; i < nnz; i++)
     {
         cont = 1;
@@ -231,9 +246,15 @@ idx_t checksort(idx_t *dims, idx_t nnz, idx_t nmodes, idx_t *order)
             else
             {
                 cont = 0;
+                ret = 0;
+                #ifdef NOF_DBG
+                    int mype; MPI_Comm_rank(MPI_COMM_WORLD, &mype);
+                    printf("error: check sort faild at p%d, ind1= %zu, ind2= %zu \n", mype, dims[i*nmodes+order[j]] , dims[(i-1)*nmodes+order[j]]);
+                #endif
                 printf("adasda\n");
             }
     }
+    return ret;
 }
 
 

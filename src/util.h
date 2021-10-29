@@ -19,8 +19,8 @@ typedef struct _tmr_t{
     idx_t convert(idx_t value);
     void substring(char *text, char out[1024]);
     void substring_b(char *dst, char *src);
-    void radixsort(idx_t *inds, real_t *vals, idx_t nnz, idx_t nmodes, idx_t *order, idx_t *dims);
-    idx_t checksort(idx_t *dims, idx_t nnz, idx_t nmodes, idx_t *order);
+    void radixsort(idx_t *inds, real_t *vals, const idx_t nnz, const idx_t nmodes, const idx_t *order, const idx_t *dims);
+    idx_t checksort(const idx_t *dims, const idx_t nnz, const idx_t nmodes, const idx_t *order);
     void stop_timer(tmr_t *t);
     void start_timer(tmr_t *t);
 

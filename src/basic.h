@@ -7,7 +7,7 @@
 #ifndef BASIC_H
 
 #define BASIC_H
-#define idxsize 64
+#define idxsize 64 
 #define valsize 32
 #if idxsize == 32
 

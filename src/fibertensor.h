@@ -21,15 +21,15 @@ struct fibertensor
 
 void init_fibertensor(struct fibertensor *ft);
 
-idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestmode, idx_t nnz, struct fibertensor *ft);
+idx_t get_longest_fibers(const idx_t *inds, const real_t *vals, const idx_t nmodes, const idx_t longestmode, const idx_t nnz, struct fibertensor *ft);
 
-idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t secondlongestmode, idx_t nnz, struct fibertensor *ft);
+idx_t get_secondlongest_fibers(const idx_t *inds, const real_t *vals, const idx_t nmodes, const idx_t secondlongestmode, const idx_t nnz, struct fibertensor *ft);
 
-idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nnz, idx_t mode, struct fibertensor *ft, idx_t longest);
+idx_t point_fibers(idx_t mype, const idx_t *inds, const idx_t *order, const idx_t nmodes, const idx_t nnz, const idx_t mode, struct fibertensor *ft, const idx_t longest);
 
-void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes);
+void get_sparsity_order(const idx_t *gdims, idx_t *order, const idx_t nmodes);
 
-idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft);
+idx_t get_fibertensor(genst *gs, const tensor *t, struct fibertensor *ft);
 
 void free_fibertensor(struct fibertensor *ft, idx_t nmodes);
 

@@ -24,7 +24,7 @@ void csf_get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
     while ( cnt < nmodes ){
         min = IDX_T_MAX;
         for(i=0; i< nmodes; i++){
-            if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= -2){
+            if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= 0){
                 min = gdims[i];
                 midx = i;
             }

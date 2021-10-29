@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include "fibertensor.h"
+#include <string.h>
 
 void init_fibertensor(struct fibertensor *ft)
 {
@@ -14,7 +15,7 @@ void init_fibertensor(struct fibertensor *ft)
   ft->slvals = NULL;
 }
 
-idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestmode, idx_t nnz, struct fibertensor *ft)
+idx_t get_longest_fibers(const idx_t *inds, const real_t *vals, const idx_t nmodes, const idx_t longestmode, const idx_t nnz, struct fibertensor *ft)
 {
   idx_t i, *fibers, ptr;
 
@@ -28,10 +29,10 @@ idx_t get_longest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t longestm
     }
   ft->lvals = (real_t *)malloc(nnz*sizeof(*ft->lvals));
   memcpy(ft->lvals, vals, nnz*sizeof(real_t));
-
+  return 0;
 }
 
-idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t secondlongestmode, idx_t nnz, struct fibertensor *ft)
+idx_t get_secondlongest_fibers(const idx_t *inds, const real_t *vals, const idx_t nmodes, const idx_t secondlongestmode, const idx_t nnz, struct fibertensor *ft)
 {
   idx_t i, *fibers, ptr;
 
@@ -47,10 +48,11 @@ idx_t get_secondlongest_fibers(idx_t *inds, real_t *vals, idx_t nmodes, idx_t se
 
   ft->slvals = (real_t *)malloc(nnz*sizeof(*ft->slvals));
   memcpy(ft->slvals, vals, nnz*sizeof(*vals));
+  return 0;
 }
 
 
-idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nnz, idx_t mode, struct fibertensor *ft, idx_t longest)
+idx_t point_fibers(const idx_t mype, const idx_t *inds, const idx_t *order, const idx_t nmodes, const idx_t nnz, const idx_t mode, struct fibertensor *ft, const idx_t longest)
 {
   idx_t i, j, *shrdinds, last, nfib, **xfibers, *fibers, ptr, cont, lastfibcnt, lastptd;
   idx_t imode;
@@ -171,10 +173,10 @@ idx_t point_fibers(idx_t mype, idx_t *inds, idx_t *order, idx_t nmodes, idx_t nn
   ft->topmostcnt[mode] = nfib;
 
   free(shrdinds);
-
+return 0;
 }
 
-void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
+void get_sparsity_order(const idx_t *gdims, idx_t *order, const idx_t nmodes)
 {
     idx_t i,j, k, cnt, midx;
     idx_t dim, min, least;
@@ -187,7 +189,7 @@ void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
     while ( cnt < nmodes ){
         min = IDX_T_MAX;
         for(i=0; i< nmodes; i++){
-            if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= -2){
+            if( tmpArr[i] < min && tmpArr[i] >=least && tmpArr[i]!= 0){
                 min = gdims[i];
                 midx = i;
             }
@@ -262,7 +264,7 @@ void get_sparsity_order(idx_t *gdims, idx_t *order, idx_t nmodes)
 
 }*/
 
-idx_t get_fibertensor(struct genst *gs, struct tensor *t, struct fibertensor *ft)
+idx_t get_fibertensor(genst *gs, const tensor *t, struct fibertensor *ft)
 {
   idx_t nmodes,  *order, lmode;
   idx_t i, c, j, nnz, *inds, min;

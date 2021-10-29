@@ -49,6 +49,7 @@ idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
     gs->fiber = 1;
     gs->alltoall = 0;
     gs->use_hc_imap = 0;
+    gs->use_pfile = 0;
     *niters = 10;
     *endian = 0;
     strcpy(meshstr, "auto");
@@ -62,6 +63,7 @@ idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
                 break;
             case 'p':
                 strcpy(partfile, optarg);
+                gs->use_pfile = 1;
                 break;
             case 'm':
                 strcpy(meshstr, optarg);
@@ -90,8 +92,9 @@ idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
 
     if (argc <= optind)
         printusage(argv[0]);
-    if (strcmp(partfile, "") == 0)
-        printf("A partition file must be provided\n");
+/*     if (strcmp(partfile, "") == 0)
+ *         printf("A partition file must be provided\n");
+ */
 
     sprintf(tensorfile, "%s", argv[optind]);
 }
@@ -119,10 +122,15 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
         }   
     }
 
+#ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t in print_stats_v2: after initial allocations\n");
+#endif
     if (gs->mype == 0) {
         substring(tensorfile, ftname);
-        substring_b(tname, ftname);
-        printf("%s %zu", tname, gs->npes);
+        //substring_b(tname, ftname);
+        //printf("%s %zu", tname, gs->npes);
+        printf("%s %zu", ftname, gs->npes);
     }
 
     /* first pridx_t total statss */
@@ -139,6 +147,10 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
         MPI_Reduce(&st->row[i], &pmStats[i][6], 1, MPI_IDX_T, MPI_MAX, 0, MPI_COMM_WORLD);
         MPI_Reduce(&st->row[i], &pmStats[i][7], 1, MPI_IDX_T, MPI_SUM, 0, MPI_COMM_WORLD);
     }
+#ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t in print_stats_v2: after initial MPI_Reduce\n");
+#endif
 
     foldT = expandT = mttkrpT = totT = mmT = othersT = 0.0;
     for (i = 0; i < gs->nmodes; ++i) {
@@ -151,6 +163,10 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
         mmT     += perMT_out[3];
         othersT += perMT_out[4];
     }
+#ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t in print_stats_v2: after collecting stats\n");
+#endif
     if(gs->mype == 0){
         /* pridx_t total statss */
         maxmf = maxme = totm = maxvf = maxve = totv= maxr = totr = 0;
@@ -197,6 +213,10 @@ void print_stats_v2(char tensorfile[], struct stats *st, double cptime, double *
             printf(" %zu %zu %f %f %f %f\n", st[6], st[7], mult*mttkrptime[i], mult*comm1time[i], mult*comm2time[i], 0.0);
         }
     }
+#ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
+    na_log(dbgfp, "\t in print_stats_v2: after printing\n");
+#endif
 
 }
 
@@ -215,7 +235,7 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &mype);
     MPI_Comm_size(MPI_COMM_WORLD, &npes);
 
-    t = (struct tensor *)malloc(sizeof(struct tensor));
+    //t = (struct tensor *)malloc(sizeof(struct tensor));
     gs = (struct genst *)malloc(sizeof(struct genst));
     gs->mype = (idx_t) mype;
     gs->npes = (idx_t) npes;
@@ -230,7 +250,7 @@ int main(int argc, char *argv[]) {
     
     na_log(dbgfp, "dbg p0.1: after mpi init\n");
 #endif
-    init_tensor(t);
+    //init_tensor(t);
     init_genst(gs);
     init_param(argc, argv, tensorfile, partfile, meshstr, gs, &niters, &endian);
 
@@ -241,7 +261,7 @@ int main(int argc, char *argv[]) {
     na_log(dbgfp, "dbg p0.2: after param init\n");
 #endif
     // read tensor
-    read_fg_tensor(tensorfile, partfile, t, gs, endian);
+    t = read_fg_tensor(tensorfile, partfile, gs, endian);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -317,6 +337,7 @@ int main(int argc, char *argv[]) {
         cp_als_fg(gs, t, ft, csftns, niters, &cptime);
         cp_als_fg_time(gs,t, ft, csftns, niters, &cptime2, mmtime, otherstime, mttkrptime, comm1time, comm2time);
 #ifdef NA_DBG
+        MPI_Barrier(MPI_COMM_WORLD);
     na_log(dbgfp, "after cp-als-statss\n");
 #endif
     }
