@@ -16,12 +16,13 @@ BDIR=bin
 
 CC=mpicc
 CFLAGS=-O3 -m64 -DNDEBUG -I$(MKLROOT)/include 
+#CFLAGS=-O3 -m64 -I$(MKLROOT)/include 
 #CFLAGS=-O3 -m64 -DNOF_DBG -I$(MKLROOT)/include 
 #CFLAGS=-ggdb -DNA_DBG -m64 -I$(MKLROOT)/include
 
 LIBS=-Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm -ldl
 
-SOURCES = genst.c tensor.c mttkrp.c stat.c fibertensor.c emb.c comm.c cpd.c csf.c io.c util.c cp_als_mpi.c  
+SOURCES = genst.c tensor.c mttkrp.c stat.c fibertensor.c emb.c comm.c cpd.c csf.c io.c util.c partition.c cp_als_mpi.c  
 OBJ = $(patsubst %.c, $(ODIR)/%.o, $(SOURCES))
 EXECS=$(BDIR)/parCPD
 

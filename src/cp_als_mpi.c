@@ -1,4 +1,5 @@
 #include "comm.h"
+#include <bits/getopt_core.h>
 #include <sys/stat.h>
 #include "cpd.h"
 #include "csf.h"
@@ -25,6 +26,7 @@
 void printusage(char *exec) {
     printf("usage: %s [options] tensorfile\n", exec);
     printf("options:\n");
+    printf("\t-m row to processor assignment options: 0 = random 1 = random-respect-comm\n");
     printf("\t-p partitionfile: (char *) in the partition file, indices numbered "
             "in the mode order\n");
     printf("\t-r rank: (int) rank of CP decomposition. default: 16\n");
@@ -50,6 +52,7 @@ idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
     gs->alltoall = 0;
     gs->use_hc_imap = 0;
     gs->use_pfile = 0;
+    gs->rows_assignment = 1;
     *niters = 10;
     *endian = 0;
     strcpy(meshstr, "auto");
@@ -66,7 +69,7 @@ idx_t init_param(idx_t argc, char *argv[], char tensorfile[], char partfile[],
                 gs->use_pfile = 1;
                 break;
             case 'm':
-                strcpy(meshstr, optarg);
+                gs->rows_assignment = atoi(optarg);
                 break;
             case 'r':
                 gs->cprank = atoi(optarg);

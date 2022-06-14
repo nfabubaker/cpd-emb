@@ -112,9 +112,7 @@ void substring(char *text, char out[1024])
         prevptr = ptr++;
     }
     prevptr++;
-
-
-    idx_t sl = strlen(prevptr)-6;
+    idx_t sl = strlen(prevptr);
     strncpy(out, prevptr, sl);
     out[sl] = '\0';
 

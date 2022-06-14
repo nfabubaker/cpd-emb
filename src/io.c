@@ -5,6 +5,7 @@
 #include "io.h"
 #include "mpi.h"
 #include "tensor.h"
+#include "partition.h"
 #include <string.h>
 #include <assert.h>
 #include <sys/types.h>
@@ -39,8 +40,8 @@ idx_t read_dimensions(char* tfile,  struct genst *gs){
 
     //gs->gnnz = strtoull(str, &str, 10);
 
-      str = strtok (&line[ptr], "\t ");
-      gs->gnnz = (idx_t) strtoull(str, NULL, 10);
+    str = strtok (&line[ptr], "\t ");
+    gs->gnnz = (idx_t) strtoull(str, NULL, 10);
 
     gs->nmodes = nmodes;
 
@@ -330,29 +331,31 @@ idx_t read_fg_partition(char partfile[], struct genst *gs)
     }
 }
 
-void random_interpart(genst *gs){
-    
+void random_interpart(tensor *t, genst *gs){
+
     idx_t i, j, k, dsize, slices_per_p, slices_per_pR;
     gs->interpart = malloc(gs->nmodes * sizeof(*gs->interpart));
     for (i = 0; i < gs->nmodes; ++i) {
         dsize = gs->gdims[i];
         gs->interpart[i] = malloc(dsize * sizeof(*gs->interpart[i]));
-/*         slices_per_p = dsize / gs->npes;
- *         slices_per_pR  = dsize % gs->npes;
- *         k = 0;
- *         for (j = 0; j < slices_per_p * gs->npes; ++j) {
- *               gs->interpart[i][j] = (k%gs->npes);
- *               ++k;
- *         }
- *         for (j = 0; j < slices_per_pR; ++j) {
- *             gs->interpart[i][slices_per_p*gs->npes + j ] = j;
- *         }
- */
-        k = 0;
-        for (j = 0; j < dsize; ++j) {
-            gs->interpart[i][j] = ( k++ % gs->npes );
+        if (gs->rows_assignment == 1) {
+#ifdef NA_DBG
+            MPI_Barrier(MPI_COMM_WORLD);
+            na_log(dbgfp, "\tattempting random-respect-comm assignment\n");
+#endif
+            partition_rows_rand(t, gs, i, gs->interpart[i]);
+#ifdef NA_DBG
+            MPI_Barrier(MPI_COMM_WORLD);
+            na_log(dbgfp, "\t random-respect-comm done\n");
+#endif
         }
-        
+        else {
+            k = 0;
+            for (j = 0; j < dsize; ++j) {
+                gs->interpart[i][j] = ( k++ % gs->npes );
+            }
+        }
+
     }
 }
 
@@ -414,30 +417,30 @@ void read_tensor_coo(FILE *fin, tensor *const t, const genst *gs, idx_t const nn
         if(read > 1 && line[0] != '#'){
             ptr = line;
             for (i = 0; i < gs->nmodes; ++i) {
-               t->inds[nnzC*gs->nmodes+i] = (idx_t) strtoull(ptr, &ptr, 10) - 1; 
+                t->inds[nnzC*gs->nmodes+i] = (idx_t) strtoull(ptr, &ptr, 10) - 1; 
             }
             t->vals[nnzC++] = (real_t) strtod(ptr, &ptr);
         }
     }
 
 
-/*     idx_t idx ;
- *     while(nnzC < nnz_to_read && (read = getline(&line, &len, fin)) != -1 )
- *     {
- *         if(read > 1 && line[0] != '#'){
- *             ptr = line;
- *             idx = 0;
- *             for(i = 0; i < gs->nmodes; i++ )
- *             {
- *                 ptr = strtok (&line[idx], "\t");
- *                 t->inds[nnzC*gs->nmodes + i] = (idx_t) strtoull(ptr, NULL , 10);
- *                 idx += strlen(ptr) + 1;
- *             }
- *           ptr = strtok (&line[idx], "\t");
- *           t->vals[nnzC++] = (real_t) strtod(ptr, NULL);
- *         }
- *     }
- */
+    /*     idx_t idx ;
+     *     while(nnzC < nnz_to_read && (read = getline(&line, &len, fin)) != -1 )
+     *     {
+     *         if(read > 1 && line[0] != '#'){
+     *             ptr = line;
+     *             idx = 0;
+     *             for(i = 0; i < gs->nmodes; i++ )
+     *             {
+     *                 ptr = strtok (&line[idx], "\t");
+     *                 t->inds[nnzC*gs->nmodes + i] = (idx_t) strtoull(ptr, NULL , 10);
+     *                 idx += strlen(ptr) + 1;
+     *             }
+     *           ptr = strtok (&line[idx], "\t");
+     *           t->vals[nnzC++] = (real_t) strtod(ptr, NULL);
+     *         }
+     *     }
+     */
 
 }
 
@@ -452,21 +455,21 @@ tensor * read_tensor_txt(char tensorfile[], struct genst *gs ){
     if(gs->mype == 0){
         read_dimensions(tensorfile, gs);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : after read_dimensions \n");
+        fprintf(stderr, "\tdbg : after read_dimensions \n");
 #endif
     }
-/*     printf("ndims = %zu nnz=%zu\n", gs->nmodes, gs->gnnz);
- *     for (i = 0; i < gs->nmodes; ++i) {
- *         printf("mode %zu = %zu\n", i, gs->gdims[i]);
- *     }
- */
-    
+    /*     printf("ndims = %zu nnz=%zu\n", gs->nmodes, gs->gnnz);
+     *     for (i = 0; i < gs->nmodes; ++i) {
+     *         printf("mode %zu = %zu\n", i, gs->gdims[i]);
+     *     }
+     */
+
     MPI_Bcast(&gs->nmodes, 1, MPI_IDX_T, 0, MPI_COMM_WORLD);
     MPI_Bcast(&gs->gnnz, 1, MPI_IDX_T, 0, MPI_COMM_WORLD);
     if(gs->mype != 0)
         gs->gdims = malloc(gs->nmodes * sizeof(*gs->gdims));
     MPI_Bcast(gs->gdims, gs->nmodes, MPI_IDX_T, 0, MPI_COMM_WORLD);
-    
+
 #ifdef NOF_DBG
     fprintf(stderr, "\tdbg : after initial Bcasts \n");
 #endif
@@ -474,26 +477,26 @@ tensor * read_tensor_txt(char tensorfile[], struct genst *gs ){
     lnnzC = gs->gnnz / gs->npes;
     lnnzR = gs->gnnz % gs->npes;
     if (gs->mype == 0) {
-         fin = fopen(tensorfile, "r");
+        fin = fopen(tensorfile, "r");
         idx_t mynnz = (lnnzR == 0 ? lnnzC : lnnzC+1);
         t = alloc_tensor_coo(gs, mynnz);
         tt = alloc_tensor_coo(gs, mynnz);
         /* read my nonzeros */
         read_tensor_coo(fin, t, gs, mynnz);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : read_tensor_coo for p0 done\n");
+        fprintf(stderr, "\tdbg : read_tensor_coo for p0 done\n");
 #endif
         /* now read for others */
         for(i = 1; i < lnnzR  ; ++i) {
             /* read lnnzC+1 nonzeros and send them to processor i+1 */
             read_tensor_coo(fin, tt, gs, lnnzC+1);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : [+1] read_tensor_coo for p%d done \n", (i) );
+            fprintf(stderr, "\tdbg : [+1] read_tensor_coo for p%d done \n", (i) );
 #endif
             MPI_Send(tt->inds, gs->nmodes*(lnnzC+1), MPI_IDX_T, (i), 11+i, MPI_COMM_WORLD);
             MPI_Send(tt->vals, (lnnzC+1), MPI_REAL_T, (i), npes + 11+i, MPI_COMM_WORLD);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : [+1] tensor_coo for p%d sent\n", (i) );
+            fprintf(stderr, "\tdbg : [+1] tensor_coo for p%d sent\n", (i) );
 #endif
         }
         int ssidx = (lnnzR == 0 ? 1 : (int)lnnzR);
@@ -501,12 +504,12 @@ tensor * read_tensor_txt(char tensorfile[], struct genst *gs ){
             /* read lnnzC+1 nonzeros and send them to processor i+1 */
             read_tensor_coo(fin, tt, gs, lnnzC);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : [r] read_tensor_coo for p%d done \n", (i) );
+            fprintf(stderr, "\tdbg : [r] read_tensor_coo for p%d done \n", (i) );
 #endif
             MPI_Send(tt->inds, gs->nmodes*(lnnzC), MPI_IDX_T, (i), 11+i, MPI_COMM_WORLD);
             MPI_Send(tt->vals, (lnnzC), MPI_REAL_T, (i), npes + 11 + i, MPI_COMM_WORLD);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : [r] read_tensor_coo for p%d done and sent\n", (i) );
+            fprintf(stderr, "\tdbg : [r] read_tensor_coo for p%d done and sent\n", (i) );
 #endif
         }
         free(tt->inds);
@@ -519,10 +522,10 @@ tensor * read_tensor_txt(char tensorfile[], struct genst *gs ){
         MPI_Recv(t->inds, gs->nmodes * mynnz, MPI_IDX_T, 0, 11+gs->mype, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(t->vals, mynnz, MPI_REAL_T, 0, npes +11+gs->mype, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 #ifdef NOF_DBG
-    fprintf(stderr, "\tdbg : p%d all recvd\n", (int)gs->mype);
+        fprintf(stderr, "\tdbg : p%d all recvd\n", (int)gs->mype);
 #endif
     }
-    
+
     return t;
 }
 
@@ -567,7 +570,7 @@ tensor * read_fg_tensor(char tensorfile[], char partfile[],  struct genst *gs , 
                 if(idx >= gs->gdims[j] || idx < 0){
                     fprintf(stderr, "idx %zu is greater than dim %zu of mode %zu nnz %zu of p%zu\n of %zu nonzeros", idx, gs->gdims[j], j, i, gs->mype, t->nnz);
                 }
-              assert(idx < gs->gdims[j] && idx >= 0 && "error: idx is greater than dim");  
+                assert(idx < gs->gdims[j] && idx >= 0 && "error: idx is greater than dim");  
             }
         }
         idx_t tgnnz;
@@ -576,7 +579,7 @@ tensor * read_fg_tensor(char tensorfile[], char partfile[],  struct genst *gs , 
         na_log(dbgfp, "\tactual gnnz = %zu calc tgnnz = %zu\n", t->gnnz, tgnnz);
         assert(tgnnz == t->gnnz);
 #endif
-        random_interpart(gs);
+        random_interpart(t, gs);
     }
     assert(gs->gnnz == t->gnnz);
     gs->nnz = t->nnz;
