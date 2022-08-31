@@ -4,21 +4,17 @@
 # @created     : Tuesday Aug 18, 2020 16:34:49 +03
 ######################################################################
 
-MKLROOT=/opt/intel/compilers_and_libraries_2017.2.174/linux/mkl
-INTELMPIROOT=/opt/intel/compilers_and_libraries_2018.1.163/linux/mpi_2019/intel64
+MKLROOT=
+INTELMPIROOT=
 
 dir_guard=@mkdir -p $(@D)
-IDIR =./include
-LDIR=/home/nabil/research/libstfw/build
+IDIR=
 SDIR=src
 ODIR=obj
 BDIR=bin
 
 CC=mpicc
 CFLAGS=-O3 -m64 -DNDEBUG -I$(MKLROOT)/include 
-#CFLAGS=-O3 -m64 -I$(MKLROOT)/include 
-#CFLAGS=-O3 -m64 -DNOF_DBG -I$(MKLROOT)/include 
-#CFLAGS=-ggdb -DNA_DBG -m64 -I$(MKLROOT)/include
 
 LIBS=-Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_sequential.a $(MKLROOT)/lib/intel64/libmkl_core.a -Wl,--end-group -lpthread -lm -ldl
 
