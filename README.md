@@ -1,7 +1,7 @@
 # CPD-EMB: An MPI-based Distributed CP Decomposition with Latency hiding
 
 ## Synopsis
-The aim of this software is to compute the CANICOM/PARAFAC (CP) decomposition of huge sprase tensors on large-scale HPC systems.
+The aim of this software is to compute the CANDECOMP/PARAFAC (CP) decomposition of huge sprase tensors on large-scale HPC systems.
 Fine-grain task parallelization of CP decomposition is known to be the most efficient in terms of computations. However, this type of parallelization incurs very high number of messages when the number of processors increase to thousands and tens of thousands. 
 This software solves the high messages problem using a novel framework that embeds the point-to-point messages into a gloabal All-Reduce operation.  
 
