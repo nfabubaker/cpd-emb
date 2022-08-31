@@ -17,7 +17,8 @@ make
 A sample usage can be as follows:
 ```
 mpirun -np 1024 cpd-emb [options] inputTensorFile
-```
+
+options:  
 -m row to processor assignment options: 0 = random 1 = random-respect-comm  
 -p partitionfile: in the partition file, indices numbered in the mode order  
 -r rank: (int) rank of CP decomposition. default: 16  
@@ -29,7 +30,7 @@ mpirun -np 1024 cpd-emb [options] inputTensorFile
 -f tensor storage option: 0: COO format, 1:CSR-like format 2: CSF   
 format. default: 1  
 -b Use hypercube imap file (topology-aware assignment) for embedded communication, a file name should be provided   
-
+```
 
 ## Issues and Bug reporting:  
 Please report any bugs or issues to Nabil Abubaker (abubaker.nf@gmail.com)  
